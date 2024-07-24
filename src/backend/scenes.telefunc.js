@@ -1,11 +1,12 @@
 import { db } from '../db.js';
 
-import { onGetGameById } from './games.telefunc.js';
+import { transformScene } from './transformers.js';
+import { getDbGame, getDbScene } from './db.js';
 
 export const onAddSceneToGame = async ({ gameId, sceneName }) => {
   const { _lastId } = db.data;
 
-  const game = await onGetGameById({ gameId });
+  const game = getDbGame(gameId);
 
   const newScene = {
     id: _lastId + 1,
@@ -20,7 +21,7 @@ export const onAddSceneToGame = async ({ gameId, sceneName }) => {
 };
 
 export const onDeleteSceneInGame = async ({ gameId, sceneId }) => {
-  const game = await onGetGameById({ gameId });
+  const game = getDbGame(gameId);
 
   game.scenes = game.scenes.filter(
     scene => scene.id !== Number.parseInt(sceneId, 10)
@@ -28,14 +29,14 @@ export const onDeleteSceneInGame = async ({ gameId, sceneId }) => {
   await db.write();
 };
 
-export const onUpdateSceneInGame = async ({ gameId, sceneId, SceneName }) => {
-  const game = await onGetGameById({ gameId });
+export const onUpdateSceneInGame = async ({ gameId, sceneId, sceneName }) => {
+  const game = getDbGame(gameId);
 
   game.scenes = game.scenes.map(scene => {
     if (scene.id === Number.parseInt(sceneId, 10)) {
       return {
         ...scene,
-        name: SceneName,
+        name: sceneName,
       };
     }
 
@@ -45,7 +46,10 @@ export const onUpdateSceneInGame = async ({ gameId, sceneId, SceneName }) => {
 };
 
 export const onGetSceneInGameById = async ({ gameId, sceneId }) => {
-  const game = await onGetGameById({ gameId });
+  const found = getDbScene(gameId, sceneId);
+  if (!found) {
+    return undefined;
+  }
 
-  return game.scenes.find(scene => scene.id === Number.parseInt(sceneId, 10));
+  return transformScene(found);
 };

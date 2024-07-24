@@ -1,27 +1,11 @@
 import { db } from '../db.js';
+import { transformGame } from './transformers.js';
+import { getDbGame } from './db.js';
 
 export const onGetGames = async () => {
   const { games } = db.data;
 
-  return games.map(game => {
-    let playlistsCount = 0;
-    let songsCount = 0;
-
-    game.scenes.forEach(scene => {
-      playlistsCount += scene.playlists.length;
-
-      scene.playlists.scenes.forEach(playlist => {
-        songsCount += playlist.songs.length;
-      });
-    });
-
-    return {
-      ...game,
-      scenesCount: game.scenes.length,
-      songsCount,
-      playlistsCount,
-    };
-  });
+  return games.map(transformGame);
 };
 
 export const onAddGame = async ({ gameName }) => {
@@ -63,7 +47,10 @@ export const onUpdateGame = async ({ gameId, gameName }) => {
 };
 
 export const onGetGameById = async ({ gameId }) => {
-  const { games } = db.data;
+  const found = getDbGame(gameId);
+  if (!found) {
+    return undefined;
+  }
 
-  return games.find(game => game.id === Number.parseInt(gameId, 10));
+  return transformGame(found);
 };

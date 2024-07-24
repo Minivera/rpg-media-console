@@ -6,55 +6,42 @@ import {
   Box,
   Spinner,
   IconButton,
-  TextField,
   Text,
   Separator,
   Callout,
 } from '@radix-ui/themes';
-import {
-  CheckIcon,
-  Cross1Icon,
-  Pencil2Icon,
-  ViewNoneIcon,
-} from '@radix-ui/react-icons';
-import { useParams, useLocation } from 'wouter';
+import { TrashIcon, ViewNoneIcon } from '@radix-ui/react-icons';
+import { useParams, useLocation, Link } from 'wouter';
 
 import { onGetGameById, onUpdateGame } from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
 import { NewSceneDialog } from '../components/NewSceneDialog.jsx';
+import { RenameField } from '../components/RenameField.jsx';
+import { PlaylistList } from '../components/PlaylistList.jsx';
+import { onDeleteSceneInGame } from '../backend/scenes.telefunc.js';
 
 export const GameById = () => {
   const { gameId } = useParams();
   const [, setLocation] = useLocation();
 
   const [game, setGame] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [gameName, setGameName] = useState('');
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
   }, [setGame]);
 
-  const handleEditingMode = opened => {
-    setIsEditing(opened);
-    setGameName(game.name);
-    setError(null);
+  const handleRenameGame = newName => {
+    onUpdateGame({ gameId, gameName: newName }).then(() => {
+      onGetGameById({ gameId }).then(game => {
+        setGame(game);
+      });
+    });
   };
 
-  const handleRenameGame = () => {
-    if (!gameName) {
-      setError({ name: 'The name should not be empty.' });
-      return;
-    }
-
-    setIsRenaming(true);
-    onUpdateGame({ gameId, gameName }).then(() => {
+  const handleDeleteScene = sceneId => {
+    onDeleteSceneInGame({ gameId, sceneId }).then(() => {
       onGetGameById({ gameId }).then(game => {
-        handleEditingMode(false);
         setGame(game);
-        setIsRenaming(false);
       });
     });
   };
@@ -92,72 +79,13 @@ export const GameById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <Flex direction="row" gap="2" align="center">
-          {isEditing ? (
-            <Box>
-              <TextField.Root
-                required
-                autoFocus
-                name="name"
-                color={error?.name ? 'red' : undefined}
-                variant={error?.name ? 'soft' : undefined}
-                placeholder="Write a new name"
-                size="2"
-                value={gameName}
-                onChange={event => setGameName(event.target.value)}
-                onKeyDown={event => {
-                  if (event.key === 'Enter') {
-                    handleRenameGame();
-                  }
-                }}
-              >
-                <TextField.Slot>
-                  <IconButton
-                    size="1"
-                    variant="ghost"
-                    onClick={handleRenameGame}
-                    loading={isRenaming}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <CheckIcon height="16" width="16" />
-                  </IconButton>
-                  <IconButton
-                    size="1"
-                    variant="ghost"
-                    onClick={() => handleEditingMode(false)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <Cross1Icon height="16" width="16" />
-                  </IconButton>
-                </TextField.Slot>
-              </TextField.Root>
-              {error?.name && (
-                <Text as="div" size="1" mt="1" color="red">
-                  {error.name}
-                </Text>
-              )}
-            </Box>
-          ) : (
-            <>
-              <IconButton
-                variant="ghost"
-                onClick={() => handleEditingMode(true)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Pencil2Icon width="18" height="18" />
-              </IconButton>
-              <Heading as="h1" size="8">
-                {game.name}
-              </Heading>
-            </>
-          )}
-        </Flex>
+        <RenameField name={game.name} onChange={handleRenameGame} />
         <Text as="h2" size="4" color="gray">
           Select the scene you want to manage, or create a new one to get
           started.
         </Text>
         <Separator mt="3" size="4" />
-        <Flex direction="row" gap="3" justify="between">
+        <Flex direction="row" gap="3" justify="between" align="center">
           <Heading as="h3" size="7">
             Your scenes
           </Heading>
@@ -168,6 +96,10 @@ export const GameById = () => {
             }}
           />
         </Flex>
+        <Text as="h3" size="2" color="gray" mb="3">
+          Manage the scenes for your games by clicking on their title or any of
+          their playlists.
+        </Text>
         {!game.scenes.length && (
           <Callout.Root>
             <Callout.Icon>
@@ -178,6 +110,37 @@ export const GameById = () => {
             </Callout.Text>
           </Callout.Root>
         )}
+        {game.scenes.map(scene => (
+          <Flex key={scene.id} gap="2" direction="column">
+            <Flex direction="row" gap="3" align="center">
+              <Heading as="h4" size="6" color="white">
+                <Link
+                  to={`/games/${gameId}/scene/${scene.id}`}
+                  style={{ color: 'inherit' }}
+                >
+                  {scene.name}
+                </Link>
+              </Heading>
+              <IconButton
+                variant="ghost"
+                onClick={() => handleDeleteScene(scene.id)}
+                style={{ cursor: 'pointer' }}
+              >
+                <TrashIcon width="18" height="18" />
+              </IconButton>
+            </Flex>
+            <PlaylistList
+              gameId={gameId}
+              sceneId={scene.id}
+              playlists={scene.playlists}
+              onCreatePlaylist={() =>
+                onGetGameById({ gameId }).then(game => {
+                  setGame(game);
+                })
+              }
+            />
+          </Flex>
+        ))}
       </Flex>
     </Flex>
   );
