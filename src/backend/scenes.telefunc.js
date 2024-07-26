@@ -15,6 +15,7 @@ export const onAddSceneToGame = async ({ gameId, sceneName }) => {
   };
 
   game.scenes.push(newScene);
+  db.data._lastId++;
   await db.write();
 
   return newScene;

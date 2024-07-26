@@ -5,19 +5,15 @@ import {
   Flex,
   Box,
   Spinner,
-  IconButton,
   Text,
   Separator,
-  Callout,
-  ScrollArea,
   Grid,
 } from '@radix-ui/themes';
-import { TrashIcon, ViewNoneIcon } from '@radix-ui/react-icons';
-import { useParams, useLocation, Link } from 'wouter';
+import { useParams, useLocation } from 'wouter';
+import { TrashIcon } from '@radix-ui/react-icons';
 
-import { onGetGameById, onUpdateGame } from '../backend/games.telefunc';
+import { onGetGameById } from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
-import { NewSceneDialog } from '../components/NewSceneDialog.jsx';
 import { RenameField } from '../components/RenameField.jsx';
 import { PlaylistList } from '../components/PlaylistList.jsx';
 import {
@@ -25,26 +21,29 @@ import {
   onGetSceneInGameById,
   onUpdateSceneInGame,
 } from '../backend/scenes.telefunc.js';
-import { NewPlaylistDialog } from '../components/NewPlaylistDialog.jsx';
+import { DeleteDialog } from '../components/DeleteDialog.jsx';
 
 export const SceneById = () => {
-  const { gameId, sceneId } = useParams();
   const [, setLocation] = useLocation();
+  const { gameId, sceneId } = useParams();
 
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
-  }, [setGame]);
-
-  useEffect(() => {
     onGetSceneInGameById({ gameId, sceneId }).then(scene => setScene(scene));
-  }, [setScene]);
+  }, [gameId, sceneId, setGame, setScene]);
 
   const handleRenameScene = newName => {
     onUpdateSceneInGame({ gameId, sceneId, sceneName: newName }).then(() => {
       onGetSceneInGameById({ gameId, sceneId }).then(scene => setScene(scene));
+    });
+  };
+
+  const handleDeleteScene = () => {
+    onDeleteSceneInGame({ gameId, sceneId }).then(() => {
+      setLocation(`/games/${gameId}`);
     });
   };
 
@@ -75,7 +74,6 @@ export const SceneById = () => {
             {
               path: `/games/${gameId}`,
               name: game.name,
-              active: true,
             },
             {
               name: scene.name,
@@ -86,13 +84,22 @@ export const SceneById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <RenameField name={scene.name} onChange={handleRenameScene} />
+        <Flex direction="row" justify="between" align="center">
+          <RenameField name={scene.name} onChange={handleRenameScene} />
+          <DeleteDialog
+            type="scene"
+            name={scene.name}
+            onConfirm={handleDeleteScene}
+          >
+            <TrashIcon /> Delete scene
+          </DeleteDialog>
+        </Flex>
         <Text as="h2" size="4" color="gray">
           Click on a playlist to manage it, or create a new one to get started
         </Text>
         <Separator mt="3" size="4" />
         <Grid columns="auto 1fr" gap="3">
-          <Flex direction="column" gap="3">
+          <Flex direction="column" gap="3" maxHeight="90vh">
             <Heading as="h3" size="7">
               Playlists
             </Heading>
@@ -101,9 +108,9 @@ export const SceneById = () => {
               sceneId={scene.id}
               playlists={scene.playlists}
               onCreatePlaylist={() =>
-                onGetGameById({ gameId }).then(game => {
-                  setGame(game);
-                })
+                onGetSceneInGameById({ gameId, sceneId }).then(scene =>
+                  setScene(scene)
+                )
               }
               orientation="vertical"
             />

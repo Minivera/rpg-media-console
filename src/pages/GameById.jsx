@@ -5,7 +5,6 @@ import {
   Flex,
   Box,
   Spinner,
-  IconButton,
   Text,
   Separator,
   Callout,
@@ -13,12 +12,16 @@ import {
 import { TrashIcon, ViewNoneIcon } from '@radix-ui/react-icons';
 import { useParams, useLocation, Link } from 'wouter';
 
-import { onGetGameById, onUpdateGame } from '../backend/games.telefunc';
+import {
+  onDeleteGame,
+  onGetGameById,
+  onUpdateGame,
+} from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
 import { NewSceneDialog } from '../components/NewSceneDialog.jsx';
 import { RenameField } from '../components/RenameField.jsx';
 import { PlaylistList } from '../components/PlaylistList.jsx';
-import { onDeleteSceneInGame } from '../backend/scenes.telefunc.js';
+import { DeleteDialog } from '../components/DeleteDialog.jsx';
 
 export const GameById = () => {
   const { gameId } = useParams();
@@ -28,7 +31,7 @@ export const GameById = () => {
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
-  }, [setGame]);
+  }, [gameId, setGame]);
 
   const handleRenameGame = newName => {
     onUpdateGame({ gameId, gameName: newName }).then(() => {
@@ -38,11 +41,9 @@ export const GameById = () => {
     });
   };
 
-  const handleDeleteScene = sceneId => {
-    onDeleteSceneInGame({ gameId, sceneId }).then(() => {
-      onGetGameById({ gameId }).then(game => {
-        setGame(game);
-      });
+  const handleDeleteGame = () => {
+    onDeleteGame({ gameId }).then(() => {
+      setLocation('/');
     });
   };
 
@@ -79,7 +80,16 @@ export const GameById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <RenameField name={game.name} onChange={handleRenameGame} />
+        <Flex direction="row" justify="between" align="center">
+          <RenameField name={game.name} onChange={handleRenameGame} />
+          <DeleteDialog
+            type="game"
+            name={game.name}
+            onConfirm={handleDeleteGame}
+          >
+            <TrashIcon /> Delete game
+          </DeleteDialog>
+        </Flex>
         <Text as="h2" size="4" color="gray">
           Select the scene you want to manage, or create a new one to get
           started.
@@ -92,7 +102,7 @@ export const GameById = () => {
           <NewSceneDialog
             gameId={gameId}
             onCreated={created => {
-              setLocation(`/games/${gameId}/scene/${created.id}`);
+              setLocation(`/games/${gameId}/scenes/${created.id}`);
             }}
           />
         </Flex>
@@ -115,19 +125,12 @@ export const GameById = () => {
             <Flex direction="row" gap="3" align="center">
               <Heading as="h4" size="6" color="white">
                 <Link
-                  to={`/games/${gameId}/scene/${scene.id}`}
+                  to={`/games/${gameId}/scenes/${scene.id}`}
                   style={{ color: 'inherit' }}
                 >
                   {scene.name}
                 </Link>
               </Heading>
-              <IconButton
-                variant="ghost"
-                onClick={() => handleDeleteScene(scene.id)}
-                style={{ cursor: 'pointer' }}
-              >
-                <TrashIcon width="18" height="18" />
-              </IconButton>
             </Flex>
             <PlaylistList
               gameId={gameId}

@@ -13,9 +13,11 @@ import { Link, useLocation } from 'wouter';
 
 import { NewPlaylistDialog } from './NewPlaylistDialog.jsx';
 import { PlayIcon } from '@radix-ui/react-icons';
+import { usePlaySongs } from '../player/PlayerContext.jsx';
 
 const PlaylistCard = ({ gameId, sceneId, playlist }) => {
   const [, setLocation] = useLocation();
+  const playSongs = usePlaySongs();
 
   const [hovered, setHovered] = useState(false);
 
@@ -85,6 +87,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
               radius="full"
               size="3"
               onClick={() => {
+                playSongs(playlist.songs);
                 setLocation(
                   `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.id}`
                 );
@@ -126,7 +129,12 @@ export const PlaylistList = ({
         pr="3"
       >
         {playlists.map(playlist => (
-          <PlaylistCard gameId={gameId} sceneId={sceneId} playlist={playlist} />
+          <PlaylistCard
+            gameId={gameId}
+            sceneId={sceneId}
+            playlist={playlist}
+            key={playlist.id}
+          />
         ))}
         <Box p="3" m="-3">
           <Box height="185px" width="185px" mb="2" position="relative">

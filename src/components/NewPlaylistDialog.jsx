@@ -22,8 +22,7 @@ export const NewPlaylistDialog = ({
   const [playlistName, setPlaylistName] = useState('');
   const [error, setError] = useState(null);
 
-  const handleCreatePlaylist = event => {
-    event.preventDefault();
+  const handleCreatePlaylist = () => {
     if (!playlistName) {
       setError({ name: 'The name should not be empty.' });
       return;

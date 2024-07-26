@@ -6,15 +6,14 @@ import {
   Text,
   Spinner,
   Button,
-  IconButton,
   Callout,
   Dialog,
   TextField,
 } from '@radix-ui/themes';
-import { PlusIcon, ViewNoneIcon, TrashIcon } from '@radix-ui/react-icons';
+import { PlusIcon, ViewNoneIcon } from '@radix-ui/react-icons';
 import { useLocation, Link } from 'wouter';
 
-import { onAddGame, onDeleteGame, onGetGames } from '../backend/games.telefunc';
+import { onAddGame, onGetGames } from '../backend/games.telefunc';
 
 export const Home = () => {
   const [, setLocation] = useLocation();
@@ -36,13 +35,6 @@ export const Home = () => {
 
     onAddGame({ gameName }).then(created => {
       setLocation(`/games/${created.id}`);
-    });
-  };
-
-  const handleDeleteGame = (event, gameId) => {
-    event.preventDefault();
-    onDeleteGame({ gameId }).then(() => {
-      onGetGames().then(games => setGames(games));
     });
   };
 
@@ -143,12 +135,6 @@ export const Home = () => {
                             {songsCount} songs
                           </Text>
                         </Flex>
-                        <IconButton
-                          onClick={event => handleDeleteGame(event, id)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <TrashIcon width="18" height="18" />
-                        </IconButton>
                       </Flex>
                     </Link>
                   </Card>

@@ -9,7 +9,12 @@ import {
 } from '@radix-ui/themes';
 import { CheckIcon, Cross1Icon, Pencil2Icon } from '@radix-ui/react-icons';
 
-export const RenameField = ({ name, onChange }) => {
+export const RenameField = ({
+  name,
+  onChange,
+  asText = false,
+  asHeading = true,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(name);
   const [error, setError] = useState(null);
@@ -87,9 +92,12 @@ export const RenameField = ({ name, onChange }) => {
           >
             <Pencil2Icon width="18" height="18" />
           </IconButton>
-          <Heading as="h1" size="8">
-            {newName}
-          </Heading>
+          {asText && <Text size="2">{newName}</Text>}
+          {asHeading && !asText && (
+            <Heading as="h1" size="8">
+              {newName}
+            </Heading>
+          )}
         </>
       )}
     </Flex>

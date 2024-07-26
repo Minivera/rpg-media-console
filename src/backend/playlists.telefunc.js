@@ -19,6 +19,7 @@ export const onAddPlaylistToScene = async ({
   };
 
   scene.playlists.push(newPlaylist);
+  db.data._lastId++;
   await db.write();
 
   return newPlaylist;
@@ -63,10 +64,26 @@ export const onGetPlaylistInSceneById = async ({
   sceneId,
   playlistId,
 }) => {
+  const scene = getDbScene(gameId, sceneId);
+  if (!scene) {
+    return undefined;
+  }
+
   const found = getDbPlaylist(gameId, sceneId, playlistId);
   if (!found) {
     return undefined;
   }
 
-  return transformPlaylist(found);
+  const currentId = scene.playlists.findIndex(
+    playlist => playlist.id === found.id
+  );
+
+  return {
+    ...transformPlaylist(found),
+    previous: currentId > 0 ? scene.playlists[currentId - 1] : undefined,
+    next:
+      currentId < scene.playlists.length - 1
+        ? scene.playlists[currentId + 1]
+        : undefined,
+  };
 };
