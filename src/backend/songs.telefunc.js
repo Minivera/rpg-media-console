@@ -24,20 +24,6 @@ export const onAddSongToPlaylist = async ({
   return newSong;
 };
 
-export const onDeleteSongInPlaylist = async ({
-  gameId,
-  sceneId,
-  playlistId,
-  songId,
-}) => {
-  const playlist = getDbPlaylist(gameId, sceneId, playlistId);
-
-  playlist.songs = playlist.songs.filter(
-    song => song.id !== Number.parseInt(songId, 10)
-  );
-  await db.write();
-};
-
 export const onRenameSongInPlaylist = async ({
   gameId,
   sceneId,
@@ -57,5 +43,31 @@ export const onRenameSongInPlaylist = async ({
 
     return song;
   });
+  await db.write();
+};
+
+export const onUpdateSongOrder = async ({
+  gameId,
+  sceneId,
+  playlistId,
+  songs,
+}) => {
+  const playlist = getDbPlaylist(gameId, sceneId, playlistId);
+
+  playlist.songs = songs;
+  await db.write();
+};
+
+export const onDeleteSongInPlaylist = async ({
+  gameId,
+  sceneId,
+  playlistId,
+  songId,
+}) => {
+  const playlist = getDbPlaylist(gameId, sceneId, playlistId);
+
+  playlist.songs = playlist.songs.filter(
+    song => song.id !== Number.parseInt(songId, 10)
+  );
   await db.write();
 };

@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       radius="small"
       asChild
     >
-      <Container minHeight="100vh">
+      <Container minHeight="100vh" id="container">
         <Flex minHeight="100vh" direction="column">
           <App />
         </Flex>

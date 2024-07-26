@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Fragment, useEffect, useState } from 'react';
 import {
   Card,
@@ -25,6 +26,7 @@ import {
   TrashIcon,
   ViewNoneIcon,
 } from '@radix-ui/react-icons';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
 import { onGetGameById } from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
@@ -45,58 +47,95 @@ import { Duration } from '../components/Duration.jsx';
 import {
   onDeleteSongInPlaylist,
   onRenameSongInPlaylist,
+  onUpdateSongOrder,
 } from '../backend/songs.telefunc.js';
 import { usePlaySongs } from '../player/PlayerContext.jsx';
 
-const SongCard = ({ song, onRenameSong, onDeleteSong }) => {
+const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
   const [hovered, setHovered] = useState(false);
   const playSongs = usePlaySongs();
 
   return (
-    <Flex
-      gap="3"
-      align="center"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <Box position="relative">
-        <Avatar src={song.image} fallback={song.originalName} />
-        {hovered && (
-          <Flex position="absolute" inset="0" justify="center" align="center">
-            <IconButton
-              radius="full"
-              size="2"
-              onClick={() => playSongs([song])}
-            >
-              <PlayIcon />
-            </IconButton>
-          </Flex>
-        )}
-      </Box>
-      <Flex direction="column" gap="1" flexGrow="1">
-        <RenameField
-          name={song.name}
-          onChange={newName => onRenameSong(song.id, newName)}
-          asText
-        />
-        <Tooltip content={song.originalName}>
-          <Text size="1" color="gray">
-            {song.author}
-          </Text>
-        </Tooltip>
-      </Flex>
-      <Flex justify="center" align="center">
-        <Duration seconds={song.duration} />
-      </Flex>
-      <DeleteDialog
-        asIcon
-        name={song.name}
-        type="song"
-        onConfirm={() => onDeleteSong(song.id)}
-      >
-        <TrashIcon />
-      </DeleteDialog>
-    </Flex>
+    <Draggable draggableId={`${song.id}`} index={index}>
+      {(provided, snapshot) => {
+        let Parent = Fragment;
+        let props = {};
+        if (snapshot.isDragging) {
+          Parent = Card;
+          props = {
+            style: {
+              backgroundColor: `gray`,
+            },
+          };
+        }
+
+        const child = (
+          <Box
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+          >
+            <Parent {...props}>
+              <Flex
+                gap="3"
+                align="center"
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+              >
+                <Box position="relative">
+                  <Avatar src={song.image} fallback={song.originalName} />
+                  {hovered && (
+                    <Flex
+                      position="absolute"
+                      inset="0"
+                      justify="center"
+                      align="center"
+                    >
+                      <IconButton
+                        radius="full"
+                        size="2"
+                        onClick={() => playSongs([song])}
+                      >
+                        <PlayIcon />
+                      </IconButton>
+                    </Flex>
+                  )}
+                </Box>
+                <Flex direction="column" gap="1" flexGrow="1">
+                  <RenameField
+                    name={song.name}
+                    onChange={newName => onRenameSong(song.id, newName)}
+                    asText
+                  />
+                  <Tooltip content={song.originalName}>
+                    <Text size="1" color="gray">
+                      {song.author}
+                    </Text>
+                  </Tooltip>
+                </Flex>
+                <Flex justify="center" align="center">
+                  <Duration seconds={song.duration} />
+                </Flex>
+                <DeleteDialog
+                  asIcon
+                  name={song.name}
+                  type="song"
+                  onConfirm={() => onDeleteSong(song.id)}
+                >
+                  <TrashIcon />
+                </DeleteDialog>
+              </Flex>
+            </Parent>
+          </Box>
+        );
+
+        if (snapshot.isDragging) {
+          return createPortal(child, document.querySelector('#container'));
+        }
+
+        return child;
+      }}
+    </Draggable>
   );
 };
 
@@ -161,6 +200,33 @@ export const PlaylistById = () => {
         setPlaylist(playlist)
       );
     });
+  };
+
+  const handleReorderSongs = result => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.destination.index === result.source.index) {
+      return;
+    }
+
+    const startIndex = result.source.index;
+    const endIndex = result.destination.index;
+    const newSongs = Array.from(playlist.songs);
+    const [removed] = newSongs.splice(startIndex, 1);
+    newSongs.splice(endIndex, 0, removed);
+
+    onUpdateSongOrder({ gameId, sceneId, playlistId, songs: newSongs }).then(
+      () => {
+        onGetSceneInGameById({ gameId, sceneId }).then(scene =>
+          setScene(scene)
+        );
+        onGetPlaylistInSceneById({ gameId, sceneId, playlistId }).then(
+          playlist => setPlaylist(playlist)
+        );
+      }
+    );
   };
 
   const handlePlaySongs = () => {
@@ -329,9 +395,6 @@ export const PlaylistById = () => {
                             <Skeleton>
                               <Box width="100%" height="100px" />
                             </Skeleton>
-                            {index < 3 && (
-                              <Separator size="4" orientation="horizontal" />
-                            )}
                           </Fragment>
                         ))}
                       </Flex>
@@ -347,21 +410,32 @@ export const PlaylistById = () => {
                         </Callout.Text>
                       </Callout.Root>
                     )}
-                    <Flex direction="column" px="4" gap="3">
-                      {playlist?.songs.map((song, index) => (
-                        <Fragment key={song.id}>
-                          <SongCard
-                            song={song}
-                            onRenameSong={handleRenameSong}
-                            onDeleteSong={handleDeleteSong}
-                          />
-                          {playlist.songs.length > 1 &&
-                            index < playlist.songs.length - 1 && (
-                              <Separator size="4" orientation="horizontal" />
-                            )}
-                        </Fragment>
-                      ))}
-                    </Flex>
+                    {!isLoading && (
+                      <DragDropContext onDragEnd={handleReorderSongs}>
+                        <Droppable droppableId="list">
+                          {provided => (
+                            <Flex
+                              direction="column"
+                              px="4"
+                              gap="3"
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                            >
+                              {playlist.songs.map((song, index) => (
+                                <SongCard
+                                  key={song.id}
+                                  song={song}
+                                  index={index}
+                                  onRenameSong={handleRenameSong}
+                                  onDeleteSong={handleDeleteSong}
+                                />
+                              ))}
+                              {provided.placeholder}
+                            </Flex>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    )}
                   </ScrollArea>
                 </Flex>
                 {!isLoading && (playlist.previous || playlist.next) && (
