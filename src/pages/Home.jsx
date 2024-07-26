@@ -4,11 +4,12 @@ import {
   Heading,
   Flex,
   Text,
-  Spinner,
   Button,
   Callout,
   Dialog,
   TextField,
+  Separator,
+  Skeleton,
 } from '@radix-ui/themes';
 import { PlusIcon, ViewNoneIcon } from '@radix-ui/react-icons';
 import { useLocation, Link } from 'wouter';
@@ -54,13 +55,60 @@ export const Home = () => {
     return (
       <>
         {header}
-        <Card variant="classic">
-          <Flex flexGrow="1">
-            <Flex justify="center" align="center" direction="column">
-              <Spinner size="3" loading />
+        <Flex direction="column" flexGrow="1" gap="5">
+          <Flex direction="row" justify="between">
+            <Flex gap="2" direction="column">
+              <Heading as="h2" size="7">
+                All games
+              </Heading>
+              <Text as="h3" size="2" color="gray">
+                Select one of the games below to manage its playlists, or create
+                a new one to get started
+              </Text>
             </Flex>
+            <Skeleton loading={!games}>
+              <Button>
+                <PlusIcon /> New game
+              </Button>
+            </Skeleton>
           </Flex>
-        </Card>
+          <Separator size="4" />
+          <Flex gap="3" direction="column">
+            {[1, 2, 3].map(index => (
+              <Skeleton key={index}>
+                <Card
+                  asChild
+                  style={{
+                    flex: 1,
+                    minWidth: '32em',
+                  }}
+                >
+                  <Flex
+                    direction="row"
+                    justify="between"
+                    align="center"
+                    gap="3"
+                  >
+                    <Flex gap="" direction="column">
+                      <Heading as="h3" size="3">
+                        loading
+                      </Heading>
+                      <Text as="div" size="2" color="gray">
+                        loading
+                      </Text>
+                      <Text as="div" size="2" color="gray">
+                        loading
+                      </Text>
+                      <Text as="div" size="2" color="gray">
+                        loading
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Card>
+              </Skeleton>
+            ))}
+          </Flex>
+        </Flex>
       </>
     );
   }
@@ -74,113 +122,111 @@ export const Home = () => {
           setError('');
         }}
       >
-        <Card variant="classic">
-          <Flex direction="column" flexGrow="1" gap="5">
-            <Flex direction="row" justify="between">
-              <Flex gap="2" direction="column">
-                <Text as="h1" size="4" weight="bold">
-                  Your games
-                </Text>
-                <Text as="h2" size="2" color="gray">
-                  Select one of the games below to manage its playlists, or
-                  create a new one to get started
-                </Text>
-              </Flex>
-              <Dialog.Trigger>
-                <Button style={{ cursor: 'pointer' }}>
-                  <PlusIcon /> New game
-                </Button>
-              </Dialog.Trigger>
+        <Flex direction="column" flexGrow="1" gap="5">
+          <Flex direction="row" justify="between">
+            <Flex gap="2" direction="column">
+              <Heading as="h2" size="7">
+                All games
+              </Heading>
+              <Text as="h3" size="2" color="gray">
+                Select one of the games below to manage its playlists, or create
+                a new one to get started
+              </Text>
             </Flex>
-            <Flex gap="3" direction="column">
-              {!games.length && (
-                <Callout.Root>
-                  <Callout.Icon>
-                    <ViewNoneIcon />
-                  </Callout.Icon>
-                  <Callout.Text>
-                    No games created, click the "New game" button to get
-                    started.
-                  </Callout.Text>
-                </Callout.Root>
-              )}
-              {games.map(
-                ({ id, name, scenesCount, playlistsCount, songsCount }) => (
-                  <Card
-                    asChild
-                    key={id}
-                    style={{
-                      flex: 1,
-                      minWidth: '32em',
-                    }}
-                  >
-                    <Link to={`/games/${id}`}>
-                      <Flex
-                        direction="row"
-                        justify="between"
-                        align="center"
-                        gap="3"
-                      >
-                        <Flex gap="" direction="column">
-                          <Heading as="h3" size="3">
-                            {name}
-                          </Heading>
-                          <Text as="div" size="2" color="gray">
-                            {scenesCount} scenes
-                          </Text>
-                          <Text as="div" size="2" color="gray">
-                            {playlistsCount} playlists
-                          </Text>
-                          <Text as="div" size="2" color="gray">
-                            {songsCount} songs
-                          </Text>
-                        </Flex>
-                      </Flex>
-                    </Link>
-                  </Card>
-                )
-              )}
-            </Flex>
+            <Dialog.Trigger>
+              <Button style={{ cursor: 'pointer' }}>
+                <PlusIcon /> New game
+              </Button>
+            </Dialog.Trigger>
           </Flex>
-          <Dialog.Content maxWidth="450px">
-            <Dialog.Title>Create a new game</Dialog.Title>
-            <Dialog.Description size="2" mb="3" color="gray">
-              Enter the game's name to create it, you will be redirected once
-              the game is created.
-            </Dialog.Description>
-            <Flex direction="column" gap="3">
-              <label>
-                <Text as="div" size="2" mb="1" weight="bold">
-                  Name
+          <Separator size="4" />
+          <Flex gap="3" direction="column">
+            {!games.length && (
+              <Callout.Root>
+                <Callout.Icon>
+                  <ViewNoneIcon />
+                </Callout.Icon>
+                <Callout.Text>
+                  No games created, click the "New game" button to get started.
+                </Callout.Text>
+              </Callout.Root>
+            )}
+            {games.map(
+              ({ id, name, scenesCount, playlistsCount, songsCount }) => (
+                <Card
+                  asChild
+                  key={id}
+                  style={{
+                    flex: 1,
+                    minWidth: '32em',
+                  }}
+                >
+                  <Link to={`/games/${id}`}>
+                    <Flex
+                      direction="row"
+                      justify="between"
+                      align="center"
+                      gap="3"
+                    >
+                      <Flex gap="" direction="column">
+                        <Heading as="h3" size="3">
+                          {name}
+                        </Heading>
+                        <Text as="div" size="2" color="gray">
+                          {scenesCount} scenes
+                        </Text>
+                        <Text as="div" size="2" color="gray">
+                          {playlistsCount} playlists
+                        </Text>
+                        <Text as="div" size="2" color="gray">
+                          {songsCount} songs
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  </Link>
+                </Card>
+              )
+            )}
+          </Flex>
+        </Flex>
+        <Dialog.Content maxWidth="450px">
+          <Dialog.Title>Create a new game</Dialog.Title>
+          <Dialog.Description size="2" mb="3" color="gray">
+            Enter the game's name to create it, you will be redirected once the
+            game is created.
+          </Dialog.Description>
+          <Flex direction="column" gap="3">
+            <label>
+              <Text as="div" size="2" mb="1" weight="bold">
+                Name
+              </Text>
+              <TextField.Root
+                required
+                name="name"
+                color={error?.name ? 'red' : undefined}
+                variant={error?.name ? 'soft' : undefined}
+                placeholder="My very awesome game"
+                value={gameName}
+                onChange={event => setGameName(event.target.value)}
+              />
+              {error?.name && (
+                <Text as="div" size="2" mt="1" color="red">
+                  {error.name}
                 </Text>
-                <TextField.Root
-                  required
-                  name="name"
-                  color={error?.name ? 'red' : undefined}
-                  variant={error?.name ? 'soft' : undefined}
-                  placeholder="My very awesome game"
-                  value={gameName}
-                  onChange={event => setGameName(event.target.value)}
-                />
-                {error?.name && (
-                  <Text as="div" size="2" mt="1" color="red">
-                    {error.name}
-                  </Text>
-                )}
-              </label>
-            </Flex>
-            <Flex gap="3" mt="4" justify="end">
-              <Dialog.Close>
-                <Button variant="soft" color="gray">
-                  Cancel
-                </Button>
-              </Dialog.Close>
-              <Dialog.Close>
-                <Button onClick={handleCreateGame}>Create</Button>
-              </Dialog.Close>
-            </Flex>
-          </Dialog.Content>
-        </Card>
+              )}
+            </label>
+          </Flex>
+          <Flex gap="3" mt="4" justify="end">
+            <Dialog.Close>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Dialog.Close>
+              <Button onClick={handleCreateGame}>Create</Button>
+            </Dialog.Close>
+          </Flex>
+        </Dialog.Content>
       </Dialog.Root>
     </>
   );

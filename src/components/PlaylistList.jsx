@@ -8,6 +8,7 @@ import {
   Inset,
   AspectRatio,
   IconButton,
+  Skeleton,
 } from '@radix-ui/themes';
 import { Link, useLocation } from 'wouter';
 
@@ -22,7 +23,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Box p="3" m="-3" key={playlist.id}>
+    <Box p="3" m="-3">
       <Box
         height="185px"
         width="185px"
@@ -152,3 +153,35 @@ export const PlaylistList = ({
     </ScrollArea>
   );
 };
+
+export const LoadingPlaylistList = ({ orientation = 'horizontal' }) => (
+  <ScrollArea size="1" scrollbars={orientation}>
+    <Flex
+      direction={orientation === 'horizontal' ? 'row' : 'column'}
+      gap="5"
+      pr="3"
+    >
+      {[1, 2, 3].map(index => (
+        <Box p="3" m="-3" key={index}>
+          <Box height="185px" width="185px" mb="1">
+            <Skeleton>
+              <Card style={{ height: '100%' }} />
+            </Skeleton>
+          </Box>
+          <Flex direction="column" position="relative" align="start">
+            <Skeleton>
+              <Text size="2" weight="medium" color="gray" highContrast>
+                loading...
+              </Text>
+            </Skeleton>
+            <Skeleton>
+              <Text size="2" color="gray">
+                loading...
+              </Text>
+            </Skeleton>
+          </Flex>
+        </Box>
+      ))}
+    </Flex>
+  </ScrollArea>
+);

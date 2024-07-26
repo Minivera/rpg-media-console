@@ -1,11 +1,11 @@
-import { useContext } from 'react';
+import { useContext, useRef, useState } from 'react';
 import {
   Avatar,
   Box,
   Card,
   Flex,
+  Grid,
   IconButton,
-  Progress,
   Text,
 } from '@radix-ui/themes';
 import {
@@ -14,18 +14,62 @@ import {
   PauseIcon,
   PlayIcon,
 } from '@radix-ui/react-icons';
+import Slider from 'rc-slider';
 
 import { Duration } from '../components/Duration.jsx';
 
 import { PlayerContext } from './PlayerContext.jsx';
+import ReactPlayer from 'react-player';
 
 export const VideoPlayer = () => {
+  const playerRef = useRef(null);
   const playerContext = useContext(PlayerContext);
+  const [played, setPlayed] = useState(0);
+
   if (!playerContext) {
     throw new Error('Wrap the app inside a PlayerProvider component');
   }
 
   const playingSong = playerContext.songs[playerContext.currentIndex];
+
+  if (!playingSong) {
+    return (
+      <Box position="fixed" right="0" bottom="2" mr="-2" width="450px">
+        <Card>
+          <Flex justify="between" gap="2" pr="6" align="center">
+            <IconButton variant="ghost" size="2" disabled>
+              <DoubleArrowLeftIcon />
+            </IconButton>
+            <IconButton
+              radius="full"
+              size="3"
+              disabled
+              loading={playerContext.loading}
+            >
+              <PlayIcon />
+            </IconButton>
+            <IconButton variant="ghost" size="2" disabled>
+              <DoubleArrowRightIcon />
+            </IconButton>
+            <Flex gap="3" align="center" flexGrow="1" ml="2">
+              <Avatar size="4" />
+              <Flex
+                direction="column"
+                flexGrow="1"
+                width="200px"
+                overflowX="hidden"
+              >
+                <Text size="2" color="gray" wrap="nowrap">
+                  Select a song to play
+                </Text>
+              </Flex>
+              <Flex justify="center" align="center" />
+            </Flex>
+          </Flex>
+        </Card>
+      </Box>
+    );
+  }
 
   return (
     <Box position="fixed" right="0" bottom="2" mr="-2" width="450px">
@@ -71,33 +115,91 @@ export const VideoPlayer = () => {
           >
             <DoubleArrowRightIcon />
           </IconButton>
-          {playingSong && (
-            <Flex gap="3" align="center" flexGrow="1" ml="2">
-              <Avatar
-                src={playingSong.image}
-                fallback={playingSong.originalName}
-              />
-              <Flex
-                direction="column"
-                flexGrow="1"
-                width="200px"
-                overflowX="hidden"
-              >
-                <Text size="2" color="gray" wrap="nowrap">
-                  {playingSong.name}
-                </Text>
-                <Text size="1" color="gray">
-                  {playingSong.author}
-                </Text>
-                <Progress color="gray" value={100} />
+          <Flex align="center" flexGrow="1" ml="2">
+            <Flex direction="column" gap="2">
+              <Flex align="center" gap="3">
+                <Avatar
+                  src={playingSong.image}
+                  fallback={playingSong.originalName}
+                  size="4"
+                />
+                <Flex direction="column" flexGrow="1" width="250px">
+                  <Text size="2" color="gray" truncate>
+                    {playingSong.name}
+                  </Text>
+                  <Text size="1" color="gray">
+                    {playingSong.author}
+                  </Text>
+                </Flex>
               </Flex>
-              <Flex justify="center" align="center">
-                <Duration seconds={playingSong.duration}>
-                  {playingSong.duration}
-                </Duration>
-              </Flex>
+              <Grid gap="2" align="center" columns="40px 1fr 40px">
+                <Flex justify="end">
+                  <Duration seconds={playingSong.duration * (played / 1000)} />
+                </Flex>
+                <Slider
+                  min={0}
+                  max={1000}
+                  step={1}
+                  value={[played]}
+                  onChangeComplete={value => {
+                    setPlayed(value);
+
+                    if (playerRef.current) {
+                      playerRef.current.seekTo(value / 1000);
+                    }
+                  }}
+                  onChange={value => {
+                    setPlayed(value);
+                  }}
+                  style={{
+                    display: 'grid',
+                    flexGrow: 1,
+                    gridTemplateColumns: '100%',
+                    height: 'var(--progress-height)',
+                    '--progress-height': 'calc(var(--space-2) * 0.75)',
+                  }}
+                  styles={{
+                    rail: {
+                      backgroundColor: 'var(--gray-a3)',
+                      height: 'var(--progress-height)',
+                      '--progress-height': 'calc(var(--space-2) * 0.75)',
+                      gridColumn: 1,
+                      gridRow: 1,
+                    },
+                    track: {
+                      backgroundColor: 'var(--accent-track)',
+                      gridColumn: 1,
+                      gridRow: 1,
+                    },
+                  }}
+                />
+                <Flex justify="start">
+                  <Duration seconds={playingSong.duration} />
+                </Flex>
+              </Grid>
+              <Box display="none">
+                <ReactPlayer
+                  ref={playerRef}
+                  url={playingSong.url}
+                  playing={playerContext.playing}
+                  onProgress={state => {
+                    setPlayed(state.played * 1000);
+                  }}
+                  onEnded={() => {
+                    playerContext.setPlaying(previous => ({
+                      ...previous,
+                      playing:
+                        previous.currentIndex + 1 <= previous.songs.length - 1,
+                      currentIndex: Math.min(
+                        previous.currentIndex + 1,
+                        previous.songs.length - 1
+                      ),
+                    }));
+                  }}
+                />
+              </Box>
             </Flex>
-          )}
+          </Flex>
         </Flex>
       </Card>
     </Box>

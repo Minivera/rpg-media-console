@@ -1,19 +1,49 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  onGetPlayingState,
+  onSavePlayingState,
+} from '../backend/state.telefunc.js';
 
 export const PlayerContext = createContext(undefined);
 
 export const PlayerProvider = ({ children }) => {
   const [playing, setPlaying] = useState({
+    loading: true,
     playing: false,
     currentIndex: 0,
     songs: [],
   });
 
+  useEffect(() => {
+    onGetPlayingState().then(data => {
+      setPlaying(state => ({
+        ...state,
+        loading: false,
+        ...data,
+      }));
+    });
+  }, []);
+
   return (
     <PlayerContext.Provider
       value={{
         ...playing,
-        setPlaying,
+        setPlaying: newOrSetter => {
+          setPlaying(previous => {
+            let state = newOrSetter;
+            if (typeof state === 'function') {
+              state = state(previous);
+            }
+
+            // Throw and forget
+            onSavePlayingState({
+              ...state,
+              playing: false,
+            });
+
+            return state;
+          });
+        },
       }}
     >
       {children}
@@ -28,10 +58,11 @@ export const usePlaySongs = () => {
   }
 
   return songs => {
-    playerContext.setPlaying({
+    playerContext.setPlaying(previousState => ({
+      ...previousState,
       playing: true,
       currentIndex: 0,
       songs,
-    });
+    }));
   };
 };

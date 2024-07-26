@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
-  Card,
   Heading,
   Flex,
   Box,
-  Spinner,
   Text,
   Separator,
   Callout,
+  Skeleton,
+  Button,
 } from '@radix-ui/themes';
 import { TrashIcon, ViewNoneIcon } from '@radix-ui/react-icons';
 import { useParams, useLocation, Link } from 'wouter';
@@ -20,7 +20,10 @@ import {
 import { Navigation } from '../components/Navigation.jsx';
 import { NewSceneDialog } from '../components/NewSceneDialog.jsx';
 import { RenameField } from '../components/RenameField.jsx';
-import { PlaylistList } from '../components/PlaylistList.jsx';
+import {
+  LoadingPlaylistList,
+  PlaylistList,
+} from '../components/PlaylistList.jsx';
 import { DeleteDialog } from '../components/DeleteDialog.jsx';
 
 export const GameById = () => {
@@ -47,48 +50,50 @@ export const GameById = () => {
     });
   };
 
-  if (!game) {
-    return (
-      <>
-        <Card variant="classic">
-          <Flex flexGrow="1">
-            <Flex justify="center" align="center" direction="column">
-              <Spinner size="3" loading />
-            </Flex>
-          </Flex>
-        </Card>
-      </>
-    );
-  }
-
   return (
     <Flex direction="column" gap="7" mt="7">
       <Box>
-        <Navigation
-          previousPage="/"
-          breadcrumbs={[
-            {
-              path: '/',
-              name: 'Games',
-            },
-            {
-              name: game.name,
-              active: true,
-            },
-          ]}
-        />
+        <Skeleton loading={!game}>
+          <Navigation
+            previousPage="/"
+            breadcrumbs={[
+              {
+                path: '/',
+                name: 'Games',
+              },
+              {
+                name: game?.name,
+                active: true,
+              },
+            ]}
+          />
+        </Skeleton>
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
         <Flex direction="row" justify="between" align="center">
-          <RenameField name={game.name} onChange={handleRenameGame} />
-          <DeleteDialog
-            type="game"
-            name={game.name}
-            onConfirm={handleDeleteGame}
-          >
-            <TrashIcon /> Delete game
-          </DeleteDialog>
+          {!!game ? (
+            <RenameField name={game.name} onChange={handleRenameGame} />
+          ) : (
+            <Skeleton>
+              <Heading as="h1" size="8">
+                loading...
+              </Heading>
+            </Skeleton>
+          )}
+          {!!game ? (
+            <DeleteDialog
+              type="game"
+              name={game.name}
+              onConfirm={handleDeleteGame}
+            >
+              <TrashIcon /> Delete game
+            </DeleteDialog>
+          ) : (
+            <Skeleton>
+              <Button>loading...</Button>
+            </Skeleton>
+          )}
         </Flex>
         <Text as="h2" size="4" color="gray">
           Select the scene you want to manage, or create a new one to get
@@ -99,18 +104,37 @@ export const GameById = () => {
           <Heading as="h3" size="7">
             Your scenes
           </Heading>
-          <NewSceneDialog
-            gameId={gameId}
-            onCreated={created => {
-              setLocation(`/games/${gameId}/scenes/${created.id}`);
-            }}
-          />
+          {!!game ? (
+            <NewSceneDialog
+              gameId={gameId}
+              onCreated={created => {
+                setLocation(`/games/${gameId}/scenes/${created.id}`);
+              }}
+            />
+          ) : (
+            <Skeleton>
+              <Button>loading...</Button>
+            </Skeleton>
+          )}
         </Flex>
         <Text as="h3" size="2" color="gray" mb="3">
           Manage the scenes for your games by clicking on their title or any of
           their playlists.
         </Text>
-        {!game.scenes.length && (
+        {!game &&
+          [1, 2, 3].map(index => (
+            <Flex key={index} gap="2" direction="column">
+              <Flex direction="row" gap="3" align="center">
+                <Skeleton>
+                  <Heading as="h4" size="6" color="white">
+                    loading
+                  </Heading>
+                </Skeleton>
+              </Flex>
+              <LoadingPlaylistList />
+            </Flex>
+          ))}
+        {!!game && !game?.scenes.length && (
           <Callout.Root>
             <Callout.Icon>
               <ViewNoneIcon />
@@ -120,7 +144,7 @@ export const GameById = () => {
             </Callout.Text>
           </Callout.Root>
         )}
-        {game.scenes.map(scene => (
+        {game?.scenes.map(scene => (
           <Flex key={scene.id} gap="2" direction="column">
             <Flex direction="row" gap="3" align="center">
               <Heading as="h4" size="6" color="white">

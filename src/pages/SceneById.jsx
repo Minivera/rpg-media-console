@@ -4,10 +4,11 @@ import {
   Heading,
   Flex,
   Box,
-  Spinner,
   Text,
   Separator,
   Grid,
+  Skeleton,
+  Button,
 } from '@radix-ui/themes';
 import { useParams, useLocation } from 'wouter';
 import { TrashIcon } from '@radix-ui/react-icons';
@@ -15,7 +16,10 @@ import { TrashIcon } from '@radix-ui/react-icons';
 import { onGetGameById } from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
 import { RenameField } from '../components/RenameField.jsx';
-import { PlaylistList } from '../components/PlaylistList.jsx';
+import {
+  LoadingPlaylistList,
+  PlaylistList,
+} from '../components/PlaylistList.jsx';
 import {
   onDeleteSceneInGame,
   onGetSceneInGameById,
@@ -47,52 +51,56 @@ export const SceneById = () => {
     });
   };
 
-  if (!scene || !game) {
-    return (
-      <>
-        <Card variant="classic">
-          <Flex flexGrow="1">
-            <Flex justify="center" align="center" direction="column">
-              <Spinner size="3" loading />
-            </Flex>
-          </Flex>
-        </Card>
-      </>
-    );
-  }
+  const isLoading = !scene || !game;
 
   return (
-    <Flex direction="column" gap="7" mt="7">
+    <Flex direction="column" gap="7" mt="7" mb="7">
       <Box>
-        <Navigation
-          previousPage={`/games/${gameId}`}
-          breadcrumbs={[
-            {
-              path: '/',
-              name: 'Games',
-            },
-            {
-              path: `/games/${gameId}`,
-              name: game.name,
-            },
-            {
-              name: scene.name,
-              active: true,
-            },
-          ]}
-        />
+        <Skeleton loading={isLoading}>
+          <Navigation
+            previousPage={`/games/${gameId}`}
+            breadcrumbs={[
+              {
+                path: '/',
+                name: 'Games',
+              },
+              {
+                path: `/games/${gameId}`,
+                name: game?.name,
+              },
+              {
+                name: scene?.name,
+                active: true,
+              },
+            ]}
+          />
+        </Skeleton>
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
         <Flex direction="row" justify="between" align="center">
-          <RenameField name={scene.name} onChange={handleRenameScene} />
-          <DeleteDialog
-            type="scene"
-            name={scene.name}
-            onConfirm={handleDeleteScene}
-          >
-            <TrashIcon /> Delete scene
-          </DeleteDialog>
+          {!isLoading ? (
+            <RenameField name={scene.name} onChange={handleRenameScene} />
+          ) : (
+            <Skeleton>
+              <Heading as="h1" size="8">
+                loading...
+              </Heading>
+            </Skeleton>
+          )}
+          {!isLoading ? (
+            <DeleteDialog
+              type="scene"
+              name={scene.name}
+              onConfirm={handleDeleteScene}
+            >
+              <TrashIcon /> Delete scene
+            </DeleteDialog>
+          ) : (
+            <Skeleton>
+              <Button>loading...</Button>
+            </Skeleton>
+          )}
         </Flex>
         <Text as="h2" size="4" color="gray">
           Click on a playlist to manage it, or create a new one to get started
@@ -103,23 +111,29 @@ export const SceneById = () => {
             <Heading as="h3" size="7">
               Playlists
             </Heading>
-            <PlaylistList
-              gameId={gameId}
-              sceneId={scene.id}
-              playlists={scene.playlists}
-              onCreatePlaylist={() =>
-                onGetSceneInGameById({ gameId, sceneId }).then(scene =>
-                  setScene(scene)
-                )
-              }
-              orientation="vertical"
-            />
+            {!isLoading ? (
+              <PlaylistList
+                gameId={gameId}
+                sceneId={scene.id}
+                playlists={scene.playlists}
+                onCreatePlaylist={() =>
+                  onGetSceneInGameById({ gameId, sceneId }).then(scene =>
+                    setScene(scene)
+                  )
+                }
+                orientation="vertical"
+              />
+            ) : (
+              <LoadingPlaylistList orientation="vertical" />
+            )}
           </Flex>
           <Card asChild>
             <Box>
-              <Text color="gray" size="1">
-                Select a playlist to manage its songs
-              </Text>
+              <Skeleton loading={isLoading}>
+                <Text color="gray" size="1">
+                  Select a playlist to manage its songs
+                </Text>
+              </Skeleton>
             </Box>
           </Card>
         </Grid>

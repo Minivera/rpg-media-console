@@ -19,6 +19,8 @@ export const App = () => (
       />
       <Route>404: Not found</Route>
     </Switch>
-    <VideoPlayer />
+    <Route path="games/*">
+      <VideoPlayer />
+    </Route>
   </PlayerProvider>
 );

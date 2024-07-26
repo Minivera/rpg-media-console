@@ -41,7 +41,7 @@ export const RenameField = ({
   return (
     <Flex direction="row" gap="2" align="center">
       {isEditing ? (
-        <Box>
+        <Box width="100%" maxWidth="450px">
           <TextField.Root
             required
             autoFocus
