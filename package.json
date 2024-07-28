@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./server",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -9,8 +9,9 @@ export default defineConfig({
       disableNamingConvention: true,
     }),
   ],
+  build: { target: 'esnext' },
   server: {
     host: true,
-    port: 8080,
+    port: 3000,
   },
 });
