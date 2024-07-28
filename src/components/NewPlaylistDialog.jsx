@@ -12,6 +12,7 @@ import {
 import { PlusIcon } from '@radix-ui/react-icons';
 
 import { onAddPlaylistToScene } from '../backend/playlists.telefunc.js';
+import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 export const NewPlaylistDialog = ({
   gameId,
@@ -19,6 +20,7 @@ export const NewPlaylistDialog = ({
   onCreated,
   asCard = false,
 }) => {
+  const isMd = useIsBreakpoint('md');
   const [playlistName, setPlaylistName] = useState('');
   const [error, setError] = useState(null);
 
@@ -44,7 +46,13 @@ export const NewPlaylistDialog = ({
         <Dialog.Trigger>
           <Card asChild>
             <Button
-              style={{ cursor: 'pointer', height: '100%', width: '100%' }}
+              style={{
+                cursor: 'pointer',
+                height: '100%',
+                width: '100%',
+                position: isMd ? 'unset' : 'absolute',
+                inset: isMd ? 'unset' : 0,
+              }}
             >
               <Flex justify="center" align="center" height="100%" width="100%">
                 <PlusIcon /> New Playlist

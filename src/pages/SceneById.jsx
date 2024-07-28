@@ -78,7 +78,7 @@ export const SceneById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <Flex direction="row" justify="between" align="center">
+        <Flex direction="row" justify="between" align="center" gap="2">
           {!isLoading ? (
             <RenameField name={scene.name} onChange={handleRenameScene} />
           ) : (
@@ -106,8 +106,13 @@ export const SceneById = () => {
           Click on a playlist to manage it, or create a new one to get started
         </Text>
         <Separator mt="3" size="4" />
-        <Grid columns="auto 1fr" gap="3">
-          <Flex direction="column" gap="3" maxHeight="90vh">
+        <Grid columns={{ md: 'auto 1fr', initial: '1fr 0px' }} gap="3">
+          <Flex
+            direction="column"
+            gap="3"
+            maxHeight={{ md: '90vh', initial: 'unset' }}
+            align={{ md: 'start', initial: 'center' }}
+          >
             <Heading as="h3" size="7">
               Playlists
             </Heading>
@@ -128,7 +133,7 @@ export const SceneById = () => {
             )}
           </Flex>
           <Card asChild>
-            <Box>
+            <Box display={{ initial: 'none', sm: 'block' }}>
               <Skeleton loading={isLoading}>
                 <Text color="gray" size="1">
                   Select a playlist to manage its songs

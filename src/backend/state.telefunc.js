@@ -9,3 +9,8 @@ export const onSavePlayingState = async playingState => {
     data.playingState = playingState;
   });
 };
+
+export const onApplyState = async jsonData => {
+  db.data = JSON.parse(jsonData);
+  await db.write();
+};

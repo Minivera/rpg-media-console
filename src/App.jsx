@@ -6,6 +6,7 @@ import { GameById } from './pages/GameById.jsx';
 import { SceneById } from './pages/SceneById.jsx';
 import { PlaylistById } from './pages/PlaylistById.jsx';
 import { VideoPlayer } from './player/VideoPlayer.jsx';
+import { UploadDataDialog } from './components/uploadDataDialog.jsx';
 
 export const App = () => (
   <PlayerProvider>
@@ -22,5 +23,6 @@ export const App = () => (
     <Route path="games/*">
       <VideoPlayer />
     </Route>
+    <UploadDataDialog />
   </PlayerProvider>
 );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
   ScrollArea,
   Box,
@@ -11,22 +11,26 @@ import {
   Skeleton,
 } from '@radix-ui/themes';
 import { Link, useLocation } from 'wouter';
+import { PlayIcon } from '@radix-ui/react-icons';
 
 import { NewPlaylistDialog } from './NewPlaylistDialog.jsx';
-import { PlayIcon } from '@radix-ui/react-icons';
 import { usePlaySongs } from '../player/PlayerContext.jsx';
+import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 const PlaylistCard = ({ gameId, sceneId, playlist }) => {
+  const isMd = useIsBreakpoint('md');
   const [, setLocation] = useLocation();
   const playSongs = usePlaySongs();
 
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Box p="3" m="-3">
+    <Box p="3" maxWidth={{ md: 'unset', initial: '48%' }}>
       <Box
-        height="185px"
+        height={{ md: '185px', initial: '0' }}
         width="185px"
+        maxWidth="100%"
+        pb={{ md: '0', initial: '100%' }}
         mb="1"
         position="relative"
         onMouseEnter={() => setHovered(true)}
@@ -81,7 +85,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
             </AspectRatio>
           </Inset>
         </Card>
-        {hovered && (
+        {(hovered || !isMd) && (
           <Flex gap="2" position="absolute" bottom="0" right="0" m="2">
             <IconButton
               tabIndex={-1}
@@ -122,12 +126,20 @@ export const PlaylistList = ({
   onCreatePlaylist,
   orientation = 'horizontal',
 }) => {
+  const isMd = useIsBreakpoint('md');
+
+  let Parent = Flex;
+  if (isMd) {
+    Parent = ScrollArea;
+  }
+
   return (
-    <ScrollArea size="1" scrollbars={orientation}>
+    <Parent size="1" scrollbars={orientation} width={isMd ? undefined : '100%'}>
       <Flex
-        direction={orientation === 'horizontal' ? 'row' : 'column'}
-        gap="5"
-        pr="3"
+        direction={orientation === 'horizontal' || !isMd ? 'row' : 'column'}
+        gap={{ md: '5', initial: '2' }}
+        pr={{ md: '3', initial: '0' }}
+        wrap={{ md: 'nowrap', initial: 'wrap' }}
       >
         {playlists.map(playlist => (
           <PlaylistCard
@@ -137,51 +149,79 @@ export const PlaylistList = ({
             key={playlist.id}
           />
         ))}
-        <Box p="3" m="-3">
-          <Box height="185px" width="185px" mb="2" position="relative">
-            <Card asChild>
-              <NewPlaylistDialog
-                gameId={gameId}
-                sceneId={sceneId}
-                onCreated={onCreatePlaylist}
-                asCard
-              />
-            </Card>
+        <Box p="3" maxWidth={{ md: 'unset', initial: '48%' }}>
+          <Box
+            height={{ md: '185px', initial: '0' }}
+            pb={{ md: '0', initial: '100%' }}
+            width="185px"
+            maxWidth="100%"
+            mb="2"
+            position="relative"
+          >
+            <NewPlaylistDialog
+              gameId={gameId}
+              sceneId={sceneId}
+              onCreated={onCreatePlaylist}
+              asCard
+            />
           </Box>
         </Box>
       </Flex>
-    </ScrollArea>
+    </Parent>
   );
 };
 
-export const LoadingPlaylistList = ({ orientation = 'horizontal' }) => (
-  <ScrollArea size="1" scrollbars={orientation}>
-    <Flex
-      direction={orientation === 'horizontal' ? 'row' : 'column'}
-      gap="5"
-      pr="3"
-    >
-      {[1, 2, 3].map(index => (
-        <Box p="3" m="-3" key={index}>
-          <Box height="185px" width="185px" mb="1">
-            <Skeleton>
-              <Card style={{ height: '100%' }} />
-            </Skeleton>
+export const LoadingPlaylistList = ({ orientation = 'horizontal' }) => {
+  const isMd = useIsBreakpoint('md');
+
+  let Parent = Flex;
+  if (isMd) {
+    Parent = ScrollArea;
+  }
+
+  return (
+    <Parent size="1" scrollbars={orientation} width={isMd ? undefined : '100%'}>
+      <Flex
+        direction={orientation === 'horizontal' || !isMd ? 'row' : 'column'}
+        gap={{ md: '5', initial: '2' }}
+        pr={{ md: '3', initial: '0' }}
+        wrap={{ md: 'nowrap', initial: 'wrap' }}
+      >
+        {[1, 2, 3].map(index => (
+          <Box p="3" maxWidth={{ md: 'unset', initial: '48%' }} key={index}>
+            <Box
+              height={{ md: '185px', initial: '0' }}
+              pb={{ md: '0', initial: '100%' }}
+              width="185px"
+              maxWidth="100%"
+              mb="2"
+              position="relative"
+            >
+              <Skeleton>
+                <Card
+                  style={{
+                    height: '100%',
+                    position: isMd ? 'unset' : 'absolute',
+                    inset: isMd ? 'unset' : 0,
+                  }}
+                />
+              </Skeleton>
+            </Box>
+            <Flex direction="column" position="relative" align="start">
+              <Skeleton>
+                <Text size="2" weight="medium" color="gray" highContrast>
+                  loading...
+                </Text>
+              </Skeleton>
+              <Skeleton>
+                <Text size="2" color="gray">
+                  loading...
+                </Text>
+              </Skeleton>
+            </Flex>
           </Box>
-          <Flex direction="column" position="relative" align="start">
-            <Skeleton>
-              <Text size="2" weight="medium" color="gray" highContrast>
-                loading...
-              </Text>
-            </Skeleton>
-            <Skeleton>
-              <Text size="2" color="gray">
-                loading...
-              </Text>
-            </Skeleton>
-          </Flex>
-        </Box>
-      ))}
-    </Flex>
-  </ScrollArea>
-);
+        ))}
+      </Flex>
+    </Parent>
+  );
+};

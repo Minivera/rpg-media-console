@@ -71,7 +71,7 @@ export const GameById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <Flex direction="row" justify="between" align="center">
+        <Flex direction="row" justify="between" align="center" gap="2">
           {!!game ? (
             <RenameField name={game.name} onChange={handleRenameGame} />
           ) : (

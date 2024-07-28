@@ -15,11 +15,13 @@ import {
   IconButton,
   Tooltip,
   Skeleton,
+  Link,
 } from '@radix-ui/themes';
 import { useParams, useLocation } from 'wouter';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  ExternalLinkIcon,
   PlayIcon,
   PlusIcon,
   ShuffleIcon,
@@ -50,6 +52,7 @@ import {
   onUpdateSongOrder,
 } from '../backend/songs.telefunc.js';
 import { usePlaySongs } from '../player/PlayerContext.jsx';
+import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
   const [hovered, setHovered] = useState(false);
@@ -82,36 +85,36 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
-                <Box position="relative">
-                  <Avatar src={song.image} fallback={song.originalName} />
-                  {hovered && (
-                    <Flex
-                      position="absolute"
-                      inset="0"
-                      justify="center"
-                      align="center"
-                    >
-                      <IconButton
-                        radius="full"
-                        size="2"
-                        onClick={() => playSongs([song])}
+                <Tooltip content={song.originalName}>
+                  <Box position="relative">
+                    <Avatar src={song.image} fallback={song.originalName} />
+                    {hovered && (
+                      <Flex
+                        position="absolute"
+                        inset="0"
+                        justify="center"
+                        align="center"
                       >
-                        <PlayIcon />
-                      </IconButton>
-                    </Flex>
-                  )}
-                </Box>
+                        <IconButton
+                          radius="full"
+                          size="2"
+                          onClick={() => playSongs([song])}
+                        >
+                          <PlayIcon />
+                        </IconButton>
+                      </Flex>
+                    )}
+                  </Box>
+                </Tooltip>
                 <Flex direction="column" gap="1" flexGrow="1">
                   <RenameField
                     name={song.name}
                     onChange={newName => onRenameSong(song.id, newName)}
                     asText
                   />
-                  <Tooltip content={song.originalName}>
-                    <Text size="1" color="gray">
-                      {song.author}
-                    </Text>
-                  </Tooltip>
+                  <Text size="1" color="gray">
+                    {song.author}
+                  </Text>
                 </Flex>
                 <Flex justify="center" align="center">
                   <Duration seconds={song.duration} />
@@ -273,7 +276,7 @@ export const PlaylistById = () => {
         <Separator mt="3" size="4" />
       </Box>
       <Flex direction="column" gap="3" mb="9">
-        <Flex direction="row" justify="between" align="center">
+        <Flex direction="row" justify="between" align="center" gap="2">
           {!isLoading ? (
             <RenameField name={playlist.name} onChange={handleRenamePlaylist} />
           ) : (
@@ -302,8 +305,13 @@ export const PlaylistById = () => {
           a song playing, or add a new song to get started.
         </Text>
         <Separator mt="3" size="4" />
-        <Grid columns="auto 1fr" gap="3">
-          <Flex direction="column" gap="3" maxHeight="90vh">
+        <Grid columns={{ md: 'auto 1fr', initial: '1fr' }} gap="3">
+          <Flex
+            direction="column"
+            gap="3"
+            maxHeight="90vh"
+            display={{ md: 'flex', initial: 'none' }}
+          >
             <Heading as="h3" size="7">
               All playlists
             </Heading>
@@ -330,7 +338,11 @@ export const PlaylistById = () => {
             )}
           </Flex>
           <Card asChild>
-            <Box p="0" maxHeight="90vh">
+            <Box
+              p="0"
+              maxHeight={{ md: '90vh', initial: 'unset' }}
+              minHeight={{ md: 'auto', initial: '58vh' }}
+            >
               <Flex direction="column" height="100%" p="3" gap="3">
                 <Flex direction="row" justify="between" align="center" px="2">
                   <Flex gap="3" align="center">
@@ -441,43 +453,50 @@ export const PlaylistById = () => {
                 {!isLoading && (playlist.previous || playlist.next) && (
                   <>
                     <Separator size="4" />
-                    <Flex
-                      direction="row"
-                      justify="between"
-                      align="center"
-                      px="2"
-                    >
-                      {playlist.previous ? (
-                        <Button
-                          style={{ cursor: 'pointer' }}
-                          variant="ghost"
-                          onClick={() => {
-                            setLocation(
-                              `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.previous.id}`
-                            );
-                          }}
-                        >
-                          <ArrowLeftIcon /> {playlist.previous.name}
-                        </Button>
-                      ) : (
-                        <Box />
+                    <Grid columns="33% 33% 33%" px="2">
+                      {playlist.previous && (
+                        <Flex justify="start" align="center" gridColumn="1">
+                          <Button
+                            style={{ cursor: 'pointer' }}
+                            variant="ghost"
+                            onClick={() => {
+                              setLocation(
+                                `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.previous.id}`
+                              );
+                            }}
+                          >
+                            <ArrowLeftIcon /> {playlist.previous.name}
+                          </Button>
+                        </Flex>
                       )}
-                      {playlist.next ? (
-                        <Button
-                          style={{ cursor: 'pointer' }}
-                          variant="ghost"
-                          onClick={() => {
-                            setLocation(
-                              `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.next.id}`
-                            );
-                          }}
-                        >
-                          {playlist.next.name} <ArrowRightIcon />
-                        </Button>
-                      ) : (
-                        <Box />
+                      {playlist.songs.length > 0 && (
+                        <Flex justify="center" align="center" gridColumn="2">
+                          <Link
+                            href={getNewPlaylistURL(
+                              playlist.songs.map(song => getYoutubeId(song.url))
+                            )}
+                            target="_blank"
+                          >
+                            Play on youtube <ExternalLinkIcon />
+                          </Link>
+                        </Flex>
                       )}
-                    </Flex>
+                      {playlist.next && (
+                        <Flex justify="end" align="center" gridColumn="3">
+                          <Button
+                            style={{ cursor: 'pointer' }}
+                            variant="ghost"
+                            onClick={() => {
+                              setLocation(
+                                `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.next.id}`
+                              );
+                            }}
+                          >
+                            {playlist.next.name} <ArrowRightIcon />
+                          </Button>
+                        </Flex>
+                      )}
+                    </Grid>
                   </>
                 )}
               </Flex>

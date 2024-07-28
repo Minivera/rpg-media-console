@@ -56,21 +56,21 @@ export const Home = () => {
       <>
         {header}
         <Flex direction="column" flexGrow="1" gap="5">
-          <Flex direction="row" justify="between">
-            <Flex gap="2" direction="column">
+          <Flex gap="2" direction="column">
+            <Flex direction="row" justify="between">
               <Heading as="h2" size="7">
                 All games
               </Heading>
-              <Text as="h3" size="2" color="gray">
-                Select one of the games below to manage its playlists, or create
-                a new one to get started
-              </Text>
+              <Skeleton loading={!games}>
+                <Button>
+                  <PlusIcon /> New game
+                </Button>
+              </Skeleton>
             </Flex>
-            <Skeleton loading={!games}>
-              <Button>
-                <PlusIcon /> New game
-              </Button>
-            </Skeleton>
+            <Text as="h3" size="2" color="gray">
+              Select one of the games below to manage its playlists, or create
+              a new one to get started
+            </Text>
           </Flex>
           <Separator size="4" />
           <Flex gap="3" direction="column">
@@ -123,21 +123,21 @@ export const Home = () => {
         }}
       >
         <Flex direction="column" flexGrow="1" gap="5">
+          <Flex gap="2" direction="column">
           <Flex direction="row" justify="between">
-            <Flex gap="2" direction="column">
               <Heading as="h2" size="7">
                 All games
               </Heading>
-              <Text as="h3" size="2" color="gray">
-                Select one of the games below to manage its playlists, or create
-                a new one to get started
-              </Text>
+              <Dialog.Trigger>
+                <Button style={{ cursor: 'pointer' }}>
+                  <PlusIcon /> New game
+                </Button>
+              </Dialog.Trigger>
             </Flex>
-            <Dialog.Trigger>
-              <Button style={{ cursor: 'pointer' }}>
-                <PlusIcon /> New game
-              </Button>
-            </Dialog.Trigger>
+            <Text as="h3" size="2" color="gray">
+              Select one of the games below to manage its playlists, or create
+              a new one to get started
+            </Text>
           </Flex>
           <Separator size="4" />
           <Flex gap="3" direction="column">

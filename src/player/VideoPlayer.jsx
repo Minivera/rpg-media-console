@@ -34,7 +34,15 @@ export const VideoPlayer = () => {
 
   if (!playingSong) {
     return (
-      <Box position="fixed" right="0" bottom="2" mr="-2" width="450px">
+      <Box
+        position="fixed"
+        right="0"
+        bottom={{ sm: '2', initial: '0' }}
+        left={{ sm: 'unset', initial: '0' }}
+        mr={{ sm: '-2', initial: '0' }}
+        width={{ sm: '450px', initial: 'auto' }}
+        maxWidth="450px"
+      >
         <Card>
           <Flex justify="between" gap="2" pr="6" align="center">
             <IconButton variant="ghost" size="2" disabled>
@@ -72,7 +80,15 @@ export const VideoPlayer = () => {
   }
 
   return (
-    <Box position="fixed" right="0" bottom="2" mr="-2" width="450px">
+    <Box
+      position="fixed"
+      right="0"
+      bottom={{ sm: '2', initial: '0' }}
+      left={{ sm: 'unset', initial: '0' }}
+      mr={{ sm: '-2', initial: '0' }}
+      width={{ sm: '450px', initial: 'auto' }}
+      maxWidth="450px"
+    >
       <Card>
         <Flex justify="between" gap="2" pr="6" align="center">
           <IconButton
@@ -123,7 +139,11 @@ export const VideoPlayer = () => {
                   fallback={playingSong.originalName}
                   size="4"
                 />
-                <Flex direction="column" flexGrow="1" width="250px">
+                <Flex
+                  direction="column"
+                  flexGrow="1"
+                  width={{ sm: '250px', initial: '50vw' }}
+                >
                   <Text size="2" color="gray" truncate>
                     {playingSong.name}
                   </Text>
