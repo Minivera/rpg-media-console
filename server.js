@@ -1,5 +1,7 @@
 import express from 'express';
-import { telefunc } from 'telefunc';
+import { telefunc, config } from 'telefunc';
+
+config.shield = { dev: true };
 
 const port = process.env.PORT || 3000;
 
