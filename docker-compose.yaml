@@ -1,10 +1,24 @@
 version: "3.1"
 
 services:
-    media-center:
+    media-center-prod:
         build:
             context: .
         restart: always
+        profiles:
+            - prod
+        environment:
+            NODE_ENV: production
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./db.json:/app/db.json
+
+    media-center-dev:
+        build:
+            context: .
+        profiles:
+            - dev
         environment:
             NODE_ENV: production
         ports:
