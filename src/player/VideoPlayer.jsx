@@ -15,16 +15,19 @@ import {
   PlayIcon,
 } from '@radix-ui/react-icons';
 import Slider from 'rc-slider';
+import ReactPlayer from 'react-player';
 
 import { Duration } from '../components/Duration.jsx';
+import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 import { PlayerContext } from './PlayerContext.jsx';
-import ReactPlayer from 'react-player';
 
 export const VideoPlayer = () => {
   const playerRef = useRef(null);
   const playerContext = useContext(PlayerContext);
   const [played, setPlayed] = useState(0);
+
+  const isMd = useIsBreakpoint('md');
 
   if (!playerContext) {
     throw new Error('Wrap the app inside a PlayerProvider component');
@@ -176,13 +179,17 @@ export const VideoPlayer = () => {
                     flexGrow: 1,
                     gridTemplateColumns: '100%',
                     height: 'var(--progress-height)',
-                    '--progress-height': 'calc(var(--space-2) * 0.75)',
+                    '--progress-height': isMd
+                      ? 'calc(var(--space-2) * 0.75)'
+                      : 'calc(var(--space-2) * 1.25)',
                   }}
                   styles={{
                     rail: {
                       backgroundColor: 'var(--gray-a3)',
                       height: 'var(--progress-height)',
-                      '--progress-height': 'calc(var(--space-2) * 0.75)',
+                      '--progress-height': isMd
+                        ? 'calc(var(--space-2) * 0.75)'
+                        : 'calc(var(--space-2) * 1.25)',
                       gridColumn: 1,
                       gridRow: 1,
                     },
