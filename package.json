@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "start": "SERVER_DB_PATH=data/db.json node ./server",
+    "start": "cross-env SERVER_DB_PATH=data/db.json node ./server",
     "build": "vite build && vite build --ssr",
     "preview": "vite preview"
   },
@@ -26,5 +26,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

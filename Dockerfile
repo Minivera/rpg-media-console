@@ -2,7 +2,7 @@ FROM node:latest
 
 WORKDIR /app
 COPY . .
-RUN mkdir data
+RUN mkdir data && touch data/db.json
 
 RUN npm install && npm run build
 

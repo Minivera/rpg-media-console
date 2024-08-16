@@ -9,7 +9,7 @@ services:
             - prod
         environment:
             NODE_ENV: production
-            SERVER_DB_PATH: /app/data/db.json
+            SERVER_DB_PATH: data/db.json
         ports:
             - "3000:3000"
         volumes:
@@ -22,8 +22,8 @@ services:
             - dev
         environment:
             NODE_ENV: development
-            SERVER_DB_PATH: /app/data/db.json
+            SERVER_DB_PATH: data/db.json
         ports:
             - "3000:3000"
         volumes:
-            - ./data/db.json:/app/data/db.json
+            - ${PWD}/data/db.json:/app/data/db.json
