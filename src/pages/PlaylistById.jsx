@@ -53,10 +53,13 @@ import {
 } from '../backend/songs.telefunc.js';
 import { usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
+import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
   const [hovered, setHovered] = useState(false);
   const playSongs = usePlaySongs();
+
+  const isMd = useIsBreakpoint('md');
 
   return (
     <Draggable draggableId={`${song.id}`} index={index}>
@@ -85,10 +88,20 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
+                {!isMd && (
+                  <IconButton
+                    radius="full"
+                    size="1"
+                    ml="-4"
+                    onClick={() => playSongs([song])}
+                  >
+                    <PlayIcon />
+                  </IconButton>
+                )}
                 <Tooltip content={song.originalName}>
                   <Box position="relative">
                     <Avatar src={song.image} fallback={song.originalName} />
-                    {hovered && (
+                    {hovered && isMd && (
                       <Flex
                         position="absolute"
                         inset="0"
@@ -344,7 +357,13 @@ export const PlaylistById = () => {
               minHeight={{ md: 'auto', initial: '58vh' }}
             >
               <Flex direction="column" height="100%" p="3" gap="3">
-                <Flex direction="row" justify="between" align="center" px="2">
+                <Flex
+                  direction="row"
+                  justify="between"
+                  align="center"
+                  px="2"
+                  gap="2"
+                >
                   <Flex gap="3" align="center">
                     <Skeleton loading={isLoading}>
                       <Heading as="h4" size="5">

@@ -22,6 +22,25 @@ export const PlayerProvider = ({ children }) => {
         ...data,
       }));
     });
+
+    const interval = setInterval(() => {
+      onGetPlayingState().then(data => {
+        setPlaying(state => {
+          return JSON.stringify(data.songs) !== JSON.stringify(state.songs) ||
+            data.currentIndex !== state.currentIndex
+            ? {
+                ...state,
+                songs: data.songs,
+                currentIndex: data.currentIndex,
+              }
+            : state;
+        });
+      });
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   return (
