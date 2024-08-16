@@ -9,10 +9,11 @@ services:
             - prod
         environment:
             NODE_ENV: production
+            SERVER_DB_PATH: /app/data/db.json
         ports:
             - "3000:3000"
         volumes:
-            - ./db.json:/app/db.json
+            - ./data/db.json:/app/data/db.json
 
     media-center-dev:
         build:
@@ -20,8 +21,9 @@ services:
         profiles:
             - dev
         environment:
-            NODE_ENV: production
+            NODE_ENV: development
+            SERVER_DB_PATH: /app/data/db.json
         ports:
             - "3000:3000"
         volumes:
-            - ./db.json:/app/db.json
+            - ./data/db.json:/app/data/db.json

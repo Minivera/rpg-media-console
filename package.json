@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "start": "node ./server",
+    "start": "SERVER_DB_PATH=data/db.json node ./server",
     "build": "vite build && vite build --ssr",
     "preview": "vite preview"
   },
