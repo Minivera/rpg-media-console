@@ -43,7 +43,6 @@ export const VideoPlayer = () => {
   const playingSong = playerContext.songs[playerContext.currentIndex];
   useEffect(() => {
     if (playerRef.current && playerContext && !lastProcessedUpdate) {
-      console.log('initial update');
       setLastProcessedUpdate('initial');
       playerRef.current.seekTo(playerContext.currentSeek);
       setPlayed(playerContext.currentSeek * 1000);
@@ -56,7 +55,6 @@ export const VideoPlayer = () => {
       playerContext.lastUpdate &&
       lastProcessedUpdate !== playerContext.lastUpdate.updateId
     ) {
-      console.log('got update', playerContext.lastUpdate);
       setLastProcessedUpdate(playerContext.lastUpdate.updateId);
       playerRef.current.seekTo(playerContext.currentSeek);
       setPlayed(playerContext.currentSeek * 1000);
