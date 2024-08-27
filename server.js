@@ -1,5 +1,8 @@
 import express from 'express';
+import * as http from 'node:http';
 import { telefunc, config } from 'telefunc';
+
+import { configureSubscriber } from './src/backend/updateSubscriber.js';
 
 config.shield = { dev: true };
 
@@ -16,11 +19,18 @@ const getRoot = async () => {
 
 const startServer = async () => {
   const app = express();
+  const server = http.createServer(app);
+
+  configureSubscriber(server);
 
   app.use(express.text());
   app.all('/_telefunc', async (req, res) => {
     const { originalUrl: url, method, body } = req;
-    const httpResponse = await telefunc({ url, method, body });
+    const httpResponse = await telefunc({
+      url,
+      method,
+      body,
+    });
     res
       .status(httpResponse.statusCode)
       .type(httpResponse.contentType)
@@ -40,7 +50,7 @@ const startServer = async () => {
     app.use(viteDevMiddleware);
   }
 
-  app.listen(port);
+  server.listen(port);
 };
 
 startServer()

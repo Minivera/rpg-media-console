@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useState } from 'react';
 import {
   Card,
   Heading,
@@ -51,13 +51,20 @@ import {
   onRenameSongInPlaylist,
   onUpdateSongOrder,
 } from '../backend/songs.telefunc.js';
-import { usePlaySongs } from '../player/PlayerContext.jsx';
+import { PlayerContext, usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
   const [hovered, setHovered] = useState(false);
   const playSongs = usePlaySongs();
+  const playerContext = useContext(PlayerContext);
+
+  if (!playerContext) {
+    throw new Error('Wrap the app inside a PlayerProvider component');
+  }
+
+  const playingSong = playerContext.songs[playerContext.currentIndex];
 
   const isMd = useIsBreakpoint('md');
 
@@ -80,6 +87,15 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
+            p="1"
+            px="4"
+            style={{
+              borderRadius: 'var(--radius-2)',
+              backgroundColor:
+                playingSong && playingSong.id === song.id
+                  ? 'var(--orange-3)'
+                  : 'unset',
+            }}
           >
             <Parent {...props}>
               <Flex
@@ -232,6 +248,11 @@ export const PlaylistById = () => {
     const newSongs = Array.from(playlist.songs);
     const [removed] = newSongs.splice(startIndex, 1);
     newSongs.splice(endIndex, 0, removed);
+
+    setPlaylist(playlist => ({
+      ...playlist,
+      songs: newSongs,
+    }));
 
     onUpdateSongOrder({ gameId, sceneId, playlistId, songs: newSongs }).then(
       () => {
@@ -447,8 +468,7 @@ export const PlaylistById = () => {
                           {provided => (
                             <Flex
                               direction="column"
-                              px="4"
-                              gap="3"
+                              gap="2"
                               {...provided.droppableProps}
                               ref={provided.innerRef}
                             >

@@ -10,6 +10,7 @@ services:
         environment:
             NODE_ENV: production
             SERVER_DB_PATH: data/db.json
+            SESSION_SECRET: ${SESSION_SECRET:-supersecretsession}
         ports:
             - "3000:3000"
         volumes:
@@ -23,6 +24,7 @@ services:
         environment:
             NODE_ENV: development
             SERVER_DB_PATH: data/db.json
+            SESSION_SECRET: supersecretsession
         ports:
             - "3000:3000"
         volumes:

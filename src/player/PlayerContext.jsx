@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import {
-  onGetPlayingState,
-  onSavePlayingState,
-} from '../backend/state.telefunc.js';
+import useWebSocket from 'react-use-websocket';
+
+import { onGetPlayingState } from '../backend/state.telefunc.js';
 
 export const PlayerContext = createContext(undefined);
 
@@ -11,7 +10,14 @@ export const PlayerProvider = ({ children }) => {
     loading: true,
     playing: false,
     currentIndex: 0,
+    currentSeek: 0,
+    volume: 50,
     songs: [],
+  });
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket('/play-updates', {
+    onOpen: () => console.log('Listening for play state updates'),
+    shouldReconnect: () => true,
   });
 
   useEffect(() => {
@@ -22,42 +28,39 @@ export const PlayerProvider = ({ children }) => {
         ...data,
       }));
     });
-
-    const interval = setInterval(() => {
-      onGetPlayingState().then(data => {
-        setPlaying(state => {
-          return JSON.stringify(data.songs) !== JSON.stringify(state.songs) ||
-            data.currentIndex !== state.currentIndex
-            ? {
-                ...state,
-                songs: data.songs,
-                currentIndex: data.currentIndex,
-              }
-            : state;
-        });
-      });
-    }, 500);
-
-    return () => {
-      clearInterval(interval);
-    };
   }, []);
+
+  useEffect(() => {
+    if (!lastJsonMessage) {
+      return;
+    }
+
+    setPlaying(state => ({
+      ...state,
+      songs: lastJsonMessage.songs,
+      currentIndex: lastJsonMessage.currentIndex,
+      currentSeek: lastJsonMessage.currentSeek,
+      volume: lastJsonMessage.volume,
+      playing: lastJsonMessage.playing,
+    }));
+    setLastUpdate(lastJsonMessage);
+  }, [lastJsonMessage]);
 
   return (
     <PlayerContext.Provider
       value={{
         ...playing,
-        setPlaying: newOrSetter => {
+        lastUpdate,
+        setPlaying: (newOrSetter, shouldBroadcast = true) => {
           setPlaying(previous => {
             let state = newOrSetter;
             if (typeof state === 'function') {
               state = state(previous);
             }
 
-            // Throw and forget
-            onSavePlayingState({
-              ...state,
-              playing: false,
+            sendJsonMessage({
+              update: state,
+              broadcast: shouldBroadcast,
             });
 
             return state;
@@ -81,6 +84,7 @@ export const usePlaySongs = () => {
       ...previousState,
       playing: true,
       currentIndex: 0,
+      currentSeek: 0,
       songs,
     }));
   };
