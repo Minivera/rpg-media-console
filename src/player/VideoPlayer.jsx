@@ -14,6 +14,7 @@ import {
   DoubleArrowRightIcon,
   PauseIcon,
   PlayIcon,
+  ResumeIcon,
   SpeakerLoudIcon,
   SpeakerModerateIcon,
   SpeakerOffIcon,
@@ -30,8 +31,12 @@ import { PlayerContext } from './PlayerContext.jsx';
 export const VideoPlayer = () => {
   const playerRef = useRef(null);
   const playerContext = useContext(PlayerContext);
-  const [played, setPlayed] = useState(0);
-  const [volume, setVolume] = useState(50);
+  const [played, setPlayed] = useState(
+    playerContext ? playerContext.currentSeek : 0
+  );
+  const [volume, setVolume] = useState(
+    playerContext ? playerContext.volume : 50
+  );
   const [lastProcessedUpdate, setLastProcessedUpdate] = useState(null);
 
   const isMd = useIsBreakpoint('md');
@@ -151,7 +156,7 @@ export const VideoPlayer = () => {
                   }
                 }}
               >
-                {playerContext.playing ? <PauseIcon /> : <PlayIcon />}
+                {playerContext.playing ? <PauseIcon /> : <ResumeIcon />}
               </IconButton>
               <IconButton
                 variant="ghost"

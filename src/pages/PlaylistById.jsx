@@ -21,6 +21,7 @@ import { useParams, useLocation } from 'wouter';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  DoubleArrowDownIcon,
   ExternalLinkIcon,
   PlayIcon,
   PlusIcon,
@@ -55,9 +56,8 @@ import { PlayerContext, usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
-const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
+const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
   const [hovered, setHovered] = useState(false);
-  const playSongs = usePlaySongs();
   const playerContext = useContext(PlayerContext);
 
   if (!playerContext) {
@@ -109,7 +109,7 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
                     radius="full"
                     size="1"
                     ml="-4"
-                    onClick={() => playSongs([song])}
+                    onClick={() => onPlaySong(song)}
                   >
                     <PlayIcon />
                   </IconButton>
@@ -127,7 +127,7 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong }) => {
                         <IconButton
                           radius="full"
                           size="2"
-                          onClick={() => playSongs([song])}
+                          onClick={() => onPlaySong(song)}
                         >
                           <PlayIcon />
                         </IconButton>
@@ -181,6 +181,7 @@ export const PlaylistById = () => {
   const [playlist, setPlaylist] = useState(null);
 
   const [shouldShuffle, setShouldShuffle] = useState(false);
+  const [shouldPlaySingle, setShouldPlaySingle] = useState(false);
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
@@ -277,6 +278,28 @@ export const PlaylistById = () => {
     }
 
     playSongs(songsList);
+  };
+
+  const handlePlaySong = song => {
+    if (shouldPlaySingle) {
+      playSongs([song]);
+      return;
+    }
+
+    if (!shouldShuffle) {
+      playSongs(
+        playlist.songs.slice(playlist.songs.findIndex(el => el.id === song.id))
+      );
+    } else {
+      const songsList = playlist.songs.filter(el => el.id !== song.id);
+
+      for (let i = songsList.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [songsList[i], songsList[j]] = [songsList[j], songsList[i]];
+      }
+
+      playSongs([song, ...songsList]);
+    }
   };
 
   const isLoading = !scene || !game || !playlist;
@@ -392,16 +415,36 @@ export const PlaylistById = () => {
                       </Heading>
                     </Skeleton>
                     <Skeleton loading={isLoading}>
-                      <IconButton
-                        variant="ghost"
-                        size="1"
-                        highContrast={shouldShuffle}
-                        onClick={() =>
-                          setShouldShuffle(shouldShuffle => !shouldShuffle)
-                        }
-                      >
-                        <ShuffleIcon />
-                      </IconButton>
+                      <Tooltip content="When enabled, will shuffle the list of songs when playing">
+                        <IconButton
+                          variant="ghost"
+                          size="1"
+                          color={shouldShuffle ? 'orange' : 'gray'}
+                          highContrast={shouldShuffle}
+                          onClick={() =>
+                            setShouldShuffle(shouldShuffle => !shouldShuffle)
+                          }
+                        >
+                          <ShuffleIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Skeleton>
+                    <Skeleton loading={isLoading}>
+                      <Tooltip content="When enabled, will play the remaining songs in the playlist after the selected song">
+                        <IconButton
+                          variant="ghost"
+                          size="1"
+                          color={shouldPlaySingle ? 'gray' : 'orange'}
+                          highContrast={!shouldPlaySingle}
+                          onClick={() =>
+                            setShouldPlaySingle(
+                              shouldPlaySingle => !shouldPlaySingle
+                            )
+                          }
+                        >
+                          <DoubleArrowDownIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Skeleton>
                     <Skeleton loading={isLoading}>
                       <IconButton
@@ -479,6 +522,7 @@ export const PlaylistById = () => {
                                   index={index}
                                   onRenameSong={handleRenameSong}
                                   onDeleteSong={handleDeleteSong}
+                                  onPlaySong={handlePlaySong}
                                 />
                               ))}
                               {provided.placeholder}
