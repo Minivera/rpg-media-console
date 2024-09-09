@@ -334,7 +334,7 @@ export const PlaylistById = () => {
         </Skeleton>
         <Separator mt="3" size="4" />
       </Box>
-      <Flex direction="column" gap="3" mb="9">
+      <Flex direction="column" gap="3">
         <Flex direction="row" justify="between" align="center" gap="2">
           {!isLoading ? (
             <RenameField name={playlist.name} onChange={handleRenamePlaylist} />
@@ -368,7 +368,7 @@ export const PlaylistById = () => {
           <Flex
             direction="column"
             gap="3"
-            maxHeight="90vh"
+            maxHeight="calc(100vh + 50px)"
             display={{ md: 'flex', initial: 'none' }}
           >
             <Heading as="h3" size="7">
@@ -399,6 +399,7 @@ export const PlaylistById = () => {
           <Card asChild>
             <Box
               p="0"
+              mb="9"
               maxHeight={{ md: '90vh', initial: 'unset' }}
               minHeight={{ md: 'auto', initial: '58vh' }}
             >

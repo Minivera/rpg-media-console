@@ -51,7 +51,7 @@ export const GameById = () => {
   };
 
   return (
-    <Flex direction="column" gap="7" mt="7">
+    <Flex direction="column" gap="7" mt="7" mb="7">
       <Box>
         <Skeleton loading={!game}>
           <Navigation
