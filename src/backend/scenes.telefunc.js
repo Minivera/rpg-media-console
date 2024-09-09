@@ -60,13 +60,13 @@ export const onUpdateSceneInGame = shield(
 );
 
 export const onGetSceneInGameById = shield(
-  [{ gameId: t.string, sceneId: t.string }],
-  async ({ gameId, sceneId }) => {
+  [{ gameId: t.string, sceneId: t.string, search: t.optional(t.string) }],
+  async ({ gameId, sceneId, search }) => {
     const found = getDbScene(gameId, sceneId);
     if (!found) {
       return undefined;
     }
 
-    return transformScene(found);
+    return transformScene(found, search);
   }
 );

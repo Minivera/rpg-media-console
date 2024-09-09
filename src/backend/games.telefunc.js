@@ -7,11 +7,18 @@ import { getDbGame } from './db.js';
 
 const t = shield.type;
 
-export const onGetGames = async () => {
-  const { games } = db.data;
+export const onGetGames = shield(
+  [t.optional({ search: t.optional(t.string) })],
+  async ({ search } = {}) => {
+    const { games } = db.data;
 
-  return games.map(transformGame);
-};
+    return games
+      .filter(game =>
+        search ? game.name.toLowerCase().includes(search.toLowerCase()) : true
+      )
+      .map(game => transformGame(game));
+  }
+);
 
 export const onAddGame = shield(
   [{ gameName: t.string }],
@@ -61,13 +68,13 @@ export const onUpdateGame = shield(
 );
 
 export const onGetGameById = shield(
-  [{ gameId: t.string }],
-  async ({ gameId }) => {
+  [{ gameId: t.string, search: t.optional(t.string) }],
+  async ({ gameId, search }) => {
     const found = getDbGame(gameId);
     if (!found) {
       return undefined;
     }
 
-    return transformGame(found);
+    return transformGame(found, search);
   }
 );

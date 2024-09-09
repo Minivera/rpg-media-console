@@ -6,7 +6,7 @@ export const transformPlaylist = playlist => {
   };
 };
 
-export const transformScene = scene => {
+export const transformScene = (scene, playlistSearch) => {
   let songsCount = 0;
 
   scene.playlists.forEach(playlist => {
@@ -15,13 +15,19 @@ export const transformScene = scene => {
 
   return {
     ...scene,
-    playlists: scene.playlists.map(transformPlaylist),
+    playlists: scene.playlists
+      .filter(playlist =>
+        playlistSearch
+          ? playlist.name.toLowerCase().includes(playlistSearch.toLowerCase())
+          : true
+      )
+      .map(playlist => transformPlaylist(playlist)),
     songsCount,
     playlistsCount: scene.playlists.length,
   };
 };
 
-export const transformGame = game => {
+export const transformGame = (game, sceneSearch) => {
   let playlistsCount = 0;
   let songsCount = 0;
 
@@ -35,7 +41,13 @@ export const transformGame = game => {
 
   return {
     ...game,
-    scenes: game.scenes.map(transformScene),
+    scenes: game.scenes
+      .filter(scene =>
+        sceneSearch
+          ? scene.name.toLowerCase().includes(sceneSearch.toLowerCase())
+          : true
+      )
+      .map(scene => transformScene(scene)),
     scenesCount: game.scenes.length,
     songsCount,
     playlistsCount,

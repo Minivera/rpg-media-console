@@ -68,8 +68,8 @@ export const Home = () => {
               </Skeleton>
             </Flex>
             <Text as="h3" size="2" color="gray">
-              Select one of the games below to manage its playlists, or create
-              a new one to get started
+              Select one of the games below to manage its playlists, or create a
+              new one to get started
             </Text>
           </Flex>
           <Separator size="4" />
@@ -124,7 +124,7 @@ export const Home = () => {
       >
         <Flex direction="column" flexGrow="1" gap="5">
           <Flex gap="2" direction="column">
-          <Flex direction="row" justify="between">
+            <Flex direction="row" justify="between">
               <Heading as="h2" size="7">
                 All games
               </Heading>
@@ -135,8 +135,8 @@ export const Home = () => {
               </Dialog.Trigger>
             </Flex>
             <Text as="h3" size="2" color="gray">
-              Select one of the games below to manage its playlists, or create
-              a new one to get started
+              Select one of the games below to manage its playlists, or create a
+              new one to get started
             </Text>
           </Flex>
           <Separator size="4" />

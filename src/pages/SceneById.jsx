@@ -77,7 +77,7 @@ export const SceneById = () => {
         </Skeleton>
         <Separator mt="3" size="4" />
       </Box>
-      <Flex direction="column" gap="3" mb="9">
+      <Flex direction="column" gap="3">
         <Flex direction="row" justify="between" align="center" gap="2">
           {!isLoading ? (
             <RenameField name={scene.name} onChange={handleRenameScene} />
@@ -110,7 +110,7 @@ export const SceneById = () => {
           <Flex
             direction="column"
             gap="3"
-            maxHeight={{ md: '90vh', initial: 'unset' }}
+            maxHeight={{ md: 'calc(100vh + 50px)', initial: 'unset' }}
             align={{ md: 'start', initial: 'center' }}
           >
             <Heading as="h3" size="7">
@@ -133,7 +133,7 @@ export const SceneById = () => {
             )}
           </Flex>
           <Card asChild>
-            <Box display={{ initial: 'none', sm: 'block' }}>
+            <Box mb="9" display={{ initial: 'none', sm: 'block' }}>
               <Skeleton loading={isLoading}>
                 <Text color="gray" size="1">
                   Select a playlist to manage its songs
