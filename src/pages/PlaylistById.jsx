@@ -82,6 +82,7 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
           };
         }
 
+        console.log(provided.draggableProps, provided.dragHandleProps);
         const child = (
           <Box
             ref={provided.innerRef}
@@ -95,6 +96,7 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
                 playingSong && playingSong.id === song.id
                   ? 'var(--orange-3)'
                   : 'unset',
+              ...provided.draggableProps.style,
             }}
           >
             <Parent {...props}>
