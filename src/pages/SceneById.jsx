@@ -136,7 +136,7 @@ export const SceneById = () => {
           <Flex
             direction="column"
             gap="3"
-            maxHeight={{ md: 'calc(100vh + 50px)', initial: 'unset' }}
+            maxHeight={{ md: 'calc(100vh + 25px)', initial: 'unset' }}
             align={{ md: 'start', initial: 'center' }}
             mb={{ md: '0', initial: '7' }}
           >

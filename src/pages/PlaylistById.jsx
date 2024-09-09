@@ -389,7 +389,7 @@ export const PlaylistById = () => {
           <Flex
             direction="column"
             gap="3"
-            maxHeight="calc(100vh + 50px)"
+            maxHeight="calc(100vh + 25px)"
             display={{ md: 'flex', initial: 'none' }}
           >
             <Heading as="h3" size="7">
