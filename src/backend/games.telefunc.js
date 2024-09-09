@@ -2,7 +2,7 @@ import { shield } from 'telefunc';
 
 import { db } from '../db.js';
 
-import { transformGame } from './transformers.js';
+import { transformGame, transformPlaylist } from './transformers.js';
 import { getDbGame } from './db.js';
 
 const t = shield.type;
@@ -76,5 +76,33 @@ export const onGetGameById = shield(
     }
 
     return transformGame(found, search);
+  }
+);
+
+export const onGetAllGameSongs = shield(
+  [{ gameId: t.string, search: t.optional(t.string) }],
+  async ({ gameId, search }) => {
+    const found = getDbGame(gameId);
+    if (!found) {
+      return undefined;
+    }
+
+    return found.scenes
+      .reduce(
+        (acc, scene) => [
+          ...acc,
+          ...scene.playlists.reduce(
+            (acc, playlist) => [...acc, ...playlist.songs],
+            []
+          ),
+        ],
+        []
+      )
+      .filter(song =>
+        search
+          ? song.name.toLowerCase().includes(search.toLowerCase()) ||
+            song.originalName.toLowerCase().includes(search.toLowerCase())
+          : true
+      );
   }
 );
