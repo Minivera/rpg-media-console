@@ -25,7 +25,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Box p="3" maxWidth={{ md: 'unset', initial: '48%' }}>
+    <Box p="3">
       <Box
         height={{ md: '185px', initial: '0' }}
         width="185px"
@@ -149,7 +149,7 @@ export const PlaylistList = ({
             key={playlist.id}
           />
         ))}
-        <Box p="3" maxWidth={{ md: 'unset', initial: '48%' }}>
+        <Box p="3">
           <Box
             height={{ md: '185px', initial: '0' }}
             pb={{ md: '0', initial: '100%' }}

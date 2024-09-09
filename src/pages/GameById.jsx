@@ -8,9 +8,17 @@ import {
   Callout,
   Skeleton,
   Button,
+  TextField,
+  IconButton,
 } from '@radix-ui/themes';
-import { TrashIcon, ViewNoneIcon } from '@radix-ui/react-icons';
+import {
+  Cross1Icon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+  ViewNoneIcon,
+} from '@radix-ui/react-icons';
 import { useParams, useLocation, Link } from 'wouter';
+import { useDebouncedCallback } from 'use-debounce';
 
 import {
   onDeleteGame,
@@ -31,10 +39,20 @@ export const GameById = () => {
   const [, setLocation] = useLocation();
 
   const [game, setGame] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
   }, [gameId, setGame]);
+
+  const handleSearch = searchValue => {
+    setSearch(searchValue);
+    onGetGameById({ gameId, search: searchValue }).then(game => setGame(game));
+  };
+
+  const debouncedSearch = useDebouncedCallback(value => {
+    handleSearch(value);
+  }, 500);
 
   const handleRenameGame = newName => {
     onUpdateGame({ gameId, gameName: newName }).then(() => {
@@ -99,6 +117,32 @@ export const GameById = () => {
           Select the scene you want to manage, or create a new one to get
           started.
         </Text>
+        <Box maxWidth={{ initial: '100%', sm: '400px' }}>
+          <TextField.Root
+            placeholder="Search scenes..."
+            disabled={!game}
+            value={search}
+            onChange={event => {
+              setSearch(event.target.value);
+              debouncedSearch(event.target.value);
+            }}
+          >
+            <TextField.Slot>
+              <MagnifyingGlassIcon height="16" width="16" />
+            </TextField.Slot>
+            {!!search && (
+              <TextField.Slot>
+                <IconButton
+                  size="1"
+                  variant="ghost"
+                  onClick={() => handleSearch('')}
+                >
+                  <Cross1Icon height="14" width="14" />
+                </IconButton>
+              </TextField.Slot>
+            )}
+          </TextField.Root>
+        </Box>
         <Separator mt="3" size="4" />
         <Flex direction="row" gap="3" justify="between" align="center">
           <Heading as="h3" size="7">
@@ -140,7 +184,12 @@ export const GameById = () => {
               <ViewNoneIcon />
             </Callout.Icon>
             <Callout.Text>
-              No scenes created, click the "New scene" button to get started.
+              No scenes {!!search ? 'found' : 'created'}, click the "New scene"
+              button{' '}
+              {!!search
+                ? ' to create one or change your search term to view games'
+                : ' to get started'}
+              .
             </Callout.Text>
           </Callout.Root>
         )}

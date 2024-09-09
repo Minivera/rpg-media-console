@@ -16,13 +16,16 @@ import {
   Tooltip,
   Skeleton,
   Link,
+  TextField,
 } from '@radix-ui/themes';
 import { useParams, useLocation } from 'wouter';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  Cross1Icon,
   DoubleArrowDownIcon,
   ExternalLinkIcon,
+  MagnifyingGlassIcon,
   PlayIcon,
   PlusIcon,
   ShuffleIcon,
@@ -55,6 +58,7 @@ import {
 import { PlayerContext, usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
+import { useDebouncedCallback } from 'use-debounce';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
   const [hovered, setHovered] = useState(false);
@@ -82,7 +86,6 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
           };
         }
 
-        console.log(provided.draggableProps, provided.dragHandleProps);
         const child = (
           <Box
             ref={provided.innerRef}
@@ -181,6 +184,7 @@ export const PlaylistById = () => {
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
   const [playlist, setPlaylist] = useState(null);
+  const [search, setSearch] = useState('');
 
   const [shouldShuffle, setShouldShuffle] = useState(false);
   const [shouldPlaySingle, setShouldPlaySingle] = useState(false);
@@ -192,6 +196,17 @@ export const PlaylistById = () => {
       setPlaylist(playlist)
     );
   }, [gameId, sceneId, playlistId, setGame, setScene, setPlaylist]);
+
+  const handleSearch = searchValue => {
+    setSearch(searchValue);
+    onGetSceneInGameById({ gameId, sceneId, search: searchValue }).then(scene =>
+      setScene(scene)
+    );
+  };
+
+  const debouncedSearch = useDebouncedCallback(value => {
+    handleSearch(value);
+  }, 500);
 
   const handleRenamePlaylist = newName => {
     onUpdatePlaylistInScene({
@@ -364,7 +379,13 @@ export const PlaylistById = () => {
           a song playing, or add a new song to get started.
         </Text>
         <Separator mt="3" size="4" />
-        <Grid columns={{ md: 'auto 1fr', initial: '1fr' }} gap="3">
+        <Grid
+          columns={{
+            md: 'calc(185px + var(--space-3) * 4) 1fr',
+            initial: '1fr 0px',
+          }}
+          gap="3"
+        >
           <Flex
             direction="column"
             gap="3"
@@ -374,6 +395,32 @@ export const PlaylistById = () => {
             <Heading as="h3" size="7">
               All playlists
             </Heading>
+            <Box pr="3" width={{ initial: '100%', md: 'unset' }}>
+              <TextField.Root
+                placeholder="Search playlists..."
+                disabled={isLoading}
+                value={search}
+                onChange={event => {
+                  setSearch(event.target.value);
+                  debouncedSearch(event.target.value);
+                }}
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="16" width="16" />
+                </TextField.Slot>
+                {!!search && (
+                  <TextField.Slot>
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      onClick={() => handleSearch('')}
+                    >
+                      <Cross1Icon height="14" width="14" />
+                    </IconButton>
+                  </TextField.Slot>
+                )}
+              </TextField.Root>
+            </Box>
             {!isLoading ? (
               <PlaylistList
                 gameId={gameId}

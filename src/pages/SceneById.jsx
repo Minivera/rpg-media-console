@@ -9,9 +9,15 @@ import {
   Grid,
   Skeleton,
   Button,
+  TextField,
+  IconButton,
 } from '@radix-ui/themes';
 import { useParams, useLocation } from 'wouter';
-import { TrashIcon } from '@radix-ui/react-icons';
+import {
+  Cross1Icon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+} from '@radix-ui/react-icons';
 
 import { onGetGameById } from '../backend/games.telefunc';
 import { Navigation } from '../components/Navigation.jsx';
@@ -26,6 +32,8 @@ import {
   onUpdateSceneInGame,
 } from '../backend/scenes.telefunc.js';
 import { DeleteDialog } from '../components/DeleteDialog.jsx';
+import { onGetPlaylistInSceneById } from '../backend/playlists.telefunc.js';
+import { useDebouncedCallback } from 'use-debounce';
 
 export const SceneById = () => {
   const [, setLocation] = useLocation();
@@ -33,11 +41,23 @@ export const SceneById = () => {
 
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     onGetGameById({ gameId }).then(game => setGame(game));
     onGetSceneInGameById({ gameId, sceneId }).then(scene => setScene(scene));
   }, [gameId, sceneId, setGame, setScene]);
+
+  const handleSearch = searchValue => {
+    setSearch(searchValue);
+    onGetSceneInGameById({ gameId, sceneId, search: searchValue }).then(scene =>
+      setScene(scene)
+    );
+  };
+
+  const debouncedSearch = useDebouncedCallback(value => {
+    handleSearch(value);
+  }, 500);
 
   const handleRenameScene = newName => {
     onUpdateSceneInGame({ gameId, sceneId, sceneName: newName }).then(() => {
@@ -106,16 +126,49 @@ export const SceneById = () => {
           Click on a playlist to manage it, or create a new one to get started
         </Text>
         <Separator mt="3" size="4" />
-        <Grid columns={{ md: 'auto 1fr', initial: '1fr 0px' }} gap="3">
+        <Grid
+          columns={{
+            md: 'calc(185px + var(--space-3) * 4) 1fr',
+            initial: '1fr 0px',
+          }}
+          gap="3"
+        >
           <Flex
             direction="column"
             gap="3"
             maxHeight={{ md: 'calc(100vh + 50px)', initial: 'unset' }}
             align={{ md: 'start', initial: 'center' }}
+            mb={{ md: '0', initial: '7' }}
           >
             <Heading as="h3" size="7">
-              Playlists
+              All playlists
             </Heading>
+            <Box pr="3" width={{ initial: '100%', md: 'unset' }}>
+              <TextField.Root
+                placeholder="Search playlists..."
+                disabled={isLoading}
+                value={search}
+                onChange={event => {
+                  setSearch(event.target.value);
+                  debouncedSearch(event.target.value);
+                }}
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="16" width="16" />
+                </TextField.Slot>
+                {!!search && (
+                  <TextField.Slot>
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      onClick={() => handleSearch('')}
+                    >
+                      <Cross1Icon height="14" width="14" />
+                    </IconButton>
+                  </TextField.Slot>
+                )}
+              </TextField.Root>
+            </Box>
             {!isLoading ? (
               <PlaylistList
                 gameId={gameId}

@@ -10,9 +10,17 @@ import {
   TextField,
   Separator,
   Skeleton,
+  Box,
+  IconButton,
 } from '@radix-ui/themes';
-import { PlusIcon, ViewNoneIcon } from '@radix-ui/react-icons';
+import {
+  Cross1Icon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  ViewNoneIcon,
+} from '@radix-ui/react-icons';
 import { useLocation, Link } from 'wouter';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { onAddGame, onGetGames } from '../backend/games.telefunc';
 
@@ -21,11 +29,21 @@ export const Home = () => {
 
   const [games, setGames] = useState(null);
   const [gameName, setGameName] = useState('');
+  const [search, setSearch] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
     onGetGames().then(games => setGames(games));
   }, [setGames]);
+
+  const handleSearch = searchValue => {
+    setSearch(searchValue);
+    onGetGames({ search: searchValue }).then(games => setGames(games));
+  };
+
+  const debouncedSearch = useDebouncedCallback(value => {
+    handleSearch(value);
+  }, 500);
 
   const handleCreateGame = event => {
     event.preventDefault();
@@ -71,6 +89,13 @@ export const Home = () => {
               Select one of the games below to manage its playlists, or create a
               new one to get started
             </Text>
+            <Box maxWidth={{ initial: '100%', sm: '400px' }}>
+              <TextField.Root placeholder="Search games..." disabled>
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="16" width="16" />
+                </TextField.Slot>
+              </TextField.Root>
+            </Box>
           </Flex>
           <Separator size="4" />
           <Flex gap="3" direction="column">
@@ -80,7 +105,6 @@ export const Home = () => {
                   asChild
                   style={{
                     flex: 1,
-                    minWidth: '32em',
                   }}
                 >
                   <Flex
@@ -138,6 +162,31 @@ export const Home = () => {
               Select one of the games below to manage its playlists, or create a
               new one to get started
             </Text>
+            <Box maxWidth={{ initial: '100%', sm: '400px' }}>
+              <TextField.Root
+                placeholder="Search games..."
+                value={search}
+                onChange={event => {
+                  setSearch(event.target.value);
+                  debouncedSearch(event.target.value);
+                }}
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="16" width="16" />
+                </TextField.Slot>
+                {!!search && (
+                  <TextField.Slot>
+                    <IconButton
+                      size="1"
+                      variant="ghost"
+                      onClick={() => handleSearch('')}
+                    >
+                      <Cross1Icon height="14" width="14" />
+                    </IconButton>
+                  </TextField.Slot>
+                )}
+              </TextField.Root>
+            </Box>
           </Flex>
           <Separator size="4" />
           <Flex gap="3" direction="column">
@@ -147,7 +196,12 @@ export const Home = () => {
                   <ViewNoneIcon />
                 </Callout.Icon>
                 <Callout.Text>
-                  No games created, click the "New game" button to get started.
+                  No games {!!search ? 'found' : 'created'}, click the "New
+                  game" button{' '}
+                  {!!search
+                    ? ' to create one or change your search term to view games'
+                    : ' to get started'}
+                  .
                 </Callout.Text>
               </Callout.Root>
             )}
@@ -158,7 +212,6 @@ export const Home = () => {
                   key={id}
                   style={{
                     flex: 1,
-                    minWidth: '32em',
                   }}
                 >
                   <Link to={`/games/${id}`}>
