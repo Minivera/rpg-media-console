@@ -1,9 +1,17 @@
-import { shield } from 'telefunc';
+import { Abort, shield } from 'telefunc';
 
-import { db } from '../db.js';
-
-import { transformPlaylist } from './transformers.js';
-import { getDbPlaylist, getDbScene } from './db.js';
+import {
+  addPlaylist,
+  deletePlaylist,
+  getPlaylistWithBetween,
+  getSongs,
+  updatePlaylist,
+} from './db/index.js';
+import { transformPlaylist } from './utils/transformers.js';
+import {
+  findPlaylistInSceneById,
+  findSceneInGameById,
+} from './utils.telefunc.js';
 
 const t = shield.type;
 
@@ -16,33 +24,18 @@ export const onAddPlaylistToScene = shield(
     },
   ],
   async ({ gameId, sceneId, playlistName }) => {
-    const { _lastId } = db.data;
+    const scene = findSceneInGameById(gameId, sceneId);
 
-    const scene = getDbScene(gameId, sceneId);
-
-    const newPlaylist = {
-      id: _lastId + 1,
-      name: playlistName,
-      songs: [],
-    };
-
-    scene.playlists.push(newPlaylist);
-    db.data._lastId++;
-    await db.write();
-
-    return newPlaylist;
+    return transformPlaylist(addPlaylist(playlistName, scene.id));
   }
 );
 
 export const onDeletePlaylistInScene = shield(
   [{ gameId: t.string, sceneId: t.string, playlistId: t.string }],
   async ({ gameId, sceneId, playlistId }) => {
-    const scene = getDbScene(gameId, sceneId);
+    const playlist = findPlaylistInSceneById(gameId, sceneId, playlistId);
 
-    scene.playlists = scene.playlists.filter(
-      playlist => playlist.id !== Number.parseInt(playlistId, 10)
-    );
-    await db.write();
+    deletePlaylist(playlist.id);
   }
 );
 
@@ -56,46 +49,36 @@ export const onUpdatePlaylistInScene = shield(
     },
   ],
   async ({ gameId, sceneId, playlistId, playlistName }) => {
-    const scene = getDbScene(gameId, sceneId);
+    const playlist = findPlaylistInSceneById(gameId, sceneId, playlistId);
 
-    scene.playlists = scene.playlists.map(playlist => {
-      if (playlist.id === Number.parseInt(playlistId, 10)) {
-        return {
-          ...playlist,
-          name: playlistName,
-        };
-      }
-
-      return playlist;
-    });
-    await db.write();
+    return transformPlaylist(updatePlaylist(playlist.id, playlistName));
   }
 );
 
 export const onGetPlaylistInSceneById = shield(
   [{ gameId: t.string, sceneId: t.string, playlistId: t.string }],
   async ({ gameId, sceneId, playlistId }) => {
-    const scene = getDbScene(gameId, sceneId);
-    if (!scene) {
-      return undefined;
-    }
+    const scene = findSceneInGameById(gameId, sceneId);
 
-    const found = getDbPlaylist(gameId, sceneId, playlistId);
-    if (!found) {
-      return undefined;
-    }
-
-    const currentId = scene.playlists.findIndex(
-      playlist => playlist.id === found.id
+    const playlistIdNumber = Number.parseInt(playlistId, 10);
+    const [previous, current, next] = getPlaylistWithBetween(
+      playlistIdNumber,
+      scene.id
     );
 
-    return {
-      ...transformPlaylist(found),
-      previous: currentId > 0 ? scene.playlists[currentId - 1] : undefined,
-      next:
-        currentId < scene.playlists.length - 1
-          ? scene.playlists[currentId + 1]
-          : undefined,
-    };
+    if (!current) {
+      throw Abort({
+        errorMessage: `playlist ${playlistId} not found`,
+      });
+    }
+
+    const playlistSongs = getSongs({ playlistId: current.id });
+
+    return transformPlaylist({
+      ...current,
+      songs: playlistSongs,
+      previous: previous ? transformPlaylist(previous) : undefined,
+      next: next ? transformPlaylist(next) : undefined,
+    });
   }
 );

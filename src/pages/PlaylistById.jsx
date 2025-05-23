@@ -426,16 +426,10 @@ export const PlaylistById = () => {
                 gameId={gameId}
                 sceneId={scene.id}
                 playlists={scene.playlists}
-                onCreatePlaylist={() => {
-                  onGetGameById({ gameId }).then(game => setGame(game));
-                  onGetSceneInGameById({ gameId, sceneId }).then(scene =>
-                    setScene(scene)
+                onCreatePlaylist={created => {
+                  setLocation(
+                    `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
                   );
-                  onGetPlaylistInSceneById({
-                    gameId,
-                    sceneId,
-                    playlistId,
-                  }).then(playlist => setPlaylist(playlist));
                 }}
                 orientation="vertical"
               />

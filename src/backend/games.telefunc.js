@@ -1,108 +1,65 @@
 import { shield } from 'telefunc';
 
-import { db } from '../db.js';
-
-import { transformGame, transformPlaylist } from './transformers.js';
-import { getDbGame } from './db.js';
+import {
+  getGames,
+  addGame,
+  updateGame,
+  deleteGame,
+  getScenes,
+} from './db/index.js';
+import { transformGame, transformScene } from './utils/transformers.js';
+import { findGameById } from './utils.telefunc.js';
 
 const t = shield.type;
 
 export const onGetGames = shield(
   [t.optional({ search: t.optional(t.string) })],
   async ({ search } = {}) => {
-    const { games } = db.data;
+    const games = getGames({ search });
 
-    return games
-      .filter(game =>
-        search ? game.name.toLowerCase().includes(search.toLowerCase()) : true
-      )
-      .map(game => transformGame(game));
+    return games.map(transformGame);
   }
 );
 
 export const onAddGame = shield(
   [{ gameName: t.string }],
   async ({ gameName }) => {
-    const { _lastId } = db.data;
+    const addedGame = addGame(gameName);
 
-    const newGame = {
-      id: _lastId + 1,
-      name: gameName,
-      scenes: [],
-    };
-
-    await db.update(data => {
-      data._lastId++;
-      data.games.push(newGame);
-    });
-
-    return newGame;
+    return transformGame(addedGame);
   }
 );
 
 export const onDeleteGame = shield(
   [{ gameId: t.string }],
   async ({ gameId }) => {
-    db.data.games = db.data.games.filter(
-      game => game.id !== Number.parseInt(gameId, 10)
-    );
-    await db.write();
+    const game = findGameById(gameId);
+
+    deleteGame(game.id);
   }
 );
 
 export const onUpdateGame = shield(
   [{ gameId: t.string, gameName: t.string }],
   async ({ gameId, gameName }) => {
-    db.data.games = db.data.games.map(game => {
-      if (game.id === Number.parseInt(gameId, 10)) {
-        return {
-          ...game,
-          name: gameName,
-        };
-      }
+    const game = findGameById(gameId);
 
-      return game;
-    });
-    await db.write();
+    const updatedGame = updateGame(game.id, gameName);
+
+    return transformGame(updatedGame);
   }
 );
 
 export const onGetGameById = shield(
   [{ gameId: t.string, search: t.optional(t.string) }],
   async ({ gameId, search }) => {
-    const found = getDbGame(gameId);
-    if (!found) {
-      return undefined;
-    }
+    const found = findGameById(gameId);
 
-    return transformGame(found, search);
-  }
-);
+    const scenes = getScenes({ search, gameId: found.id, withPlaylists: true });
 
-export const onGetAllGameSongs = shield(
-  [{ gameId: t.string, search: t.optional(t.string) }],
-  async ({ gameId, search }) => {
-    const found = getDbGame(gameId);
-    if (!found) {
-      return undefined;
-    }
-
-    return found.scenes
-      .reduce(
-        (acc, scene) => [
-          ...acc,
-          ...scene.playlists.reduce(
-            (acc, playlist) => [...acc, ...playlist.songs],
-            []
-          ),
-        ],
-        []
-      )
-      .filter(song =>
-        search
-          ? song.name.toLowerCase().includes(search.toLowerCase()) ||
-            song.originalName.toLowerCase().includes(search.toLowerCase())
-          : true
-      );
+    return {
+      ...transformGame(found),
+      scenes: scenes.map(transformScene),
+    };
   }
 );

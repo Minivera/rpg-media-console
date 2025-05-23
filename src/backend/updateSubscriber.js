@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import WebSocket, { WebSocketServer } from 'ws';
 
-import { db } from '../db.js';
+const db = {};
 
 export const configureSubscriber = server => {
   const wss = new WebSocketServer({ noServer: true });

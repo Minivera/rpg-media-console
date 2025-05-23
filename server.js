@@ -3,6 +3,7 @@ import * as http from 'node:http';
 import { telefunc, config } from 'telefunc';
 
 import { configureSubscriber } from './src/backend/updateSubscriber.js';
+import { runMigrations } from './src/backend/db/db.js';
 
 config.shield = { dev: true };
 
@@ -22,6 +23,7 @@ const startServer = async () => {
   const server = http.createServer(app);
 
   configureSubscriber(server);
+  runMigrations();
 
   app.use(express.text());
   app.all('/_telefunc', async (req, res) => {

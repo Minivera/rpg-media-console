@@ -32,7 +32,6 @@ import {
   onUpdateSceneInGame,
 } from '../backend/scenes.telefunc.js';
 import { DeleteDialog } from '../components/DeleteDialog.jsx';
-import { onGetPlaylistInSceneById } from '../backend/playlists.telefunc.js';
 import { useDebouncedCallback } from 'use-debounce';
 
 export const SceneById = () => {
@@ -174,11 +173,11 @@ export const SceneById = () => {
                 gameId={gameId}
                 sceneId={scene.id}
                 playlists={scene.playlists}
-                onCreatePlaylist={() =>
-                  onGetSceneInGameById({ gameId, sceneId }).then(scene =>
-                    setScene(scene)
-                  )
-                }
+                onCreatePlaylist={created => {
+                  setLocation(
+                    `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
+                  );
+                }}
                 orientation="vertical"
               />
             ) : (

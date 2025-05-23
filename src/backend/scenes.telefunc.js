@@ -1,72 +1,43 @@
 import { shield } from 'telefunc';
 
-import { db } from '../db.js';
-
-import { transformScene } from './transformers.js';
-import { getDbGame, getDbScene } from './db.js';
+import { addScene, deleteScene, updateScene } from './db/index.js';
+import { transformScene } from './utils/transformers.js';
+import { findGameById, findSceneInGameById } from './utils.telefunc.js';
 
 const t = shield.type;
 
 export const onAddSceneToGame = shield(
   [{ gameId: t.string, sceneName: t.string }],
   async ({ gameId, sceneName }) => {
-    const { _lastId } = db.data;
+    const game = findGameById(gameId);
 
-    const game = getDbGame(gameId);
-
-    const newScene = {
-      id: _lastId + 1,
-      name: sceneName,
-      playlists: [],
-    };
-
-    game.scenes.push(newScene);
-    db.data._lastId++;
-    await db.write();
-
-    return newScene;
+    return transformScene(addScene(sceneName, game.id));
   }
 );
 
 export const onDeleteSceneInGame = shield(
   [{ gameId: t.string, sceneId: t.string }],
   async ({ gameId, sceneId }) => {
-    const game = getDbGame(gameId);
+    const scene = findSceneInGameById(gameId, sceneId);
 
-    game.scenes = game.scenes.filter(
-      scene => scene.id !== Number.parseInt(sceneId, 10)
-    );
-    await db.write();
+    deleteScene(scene.id);
   }
 );
 
 export const onUpdateSceneInGame = shield(
   [{ gameId: t.string, sceneId: t.string, sceneName: t.string }],
   async ({ gameId, sceneId, sceneName }) => {
-    const game = getDbGame(gameId);
+    const scene = findSceneInGameById(gameId, sceneId);
 
-    game.scenes = game.scenes.map(scene => {
-      if (scene.id === Number.parseInt(sceneId, 10)) {
-        return {
-          ...scene,
-          name: sceneName,
-        };
-      }
-
-      return scene;
-    });
-    await db.write();
+    return transformScene(updateScene(scene.id, sceneName));
   }
 );
 
 export const onGetSceneInGameById = shield(
   [{ gameId: t.string, sceneId: t.string, search: t.optional(t.string) }],
   async ({ gameId, sceneId, search }) => {
-    const found = getDbScene(gameId, sceneId);
-    if (!found) {
-      return undefined;
-    }
+    const scene = findSceneInGameById(gameId, sceneId, search);
 
-    return transformScene(found, search);
+    return transformScene(scene);
   }
 );

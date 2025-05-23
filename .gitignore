@@ -33,3 +33,4 @@ public/wa-sqlite-async.wasm
 
 # Data files
 db.json
+db.sqlite

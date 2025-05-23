@@ -79,7 +79,7 @@ export const Home = () => {
               <Heading as="h2" size="7">
                 All games
               </Heading>
-              <Skeleton loading={!games}>
+              <Skeleton loading>
                 <Button>
                   <PlusIcon /> New game
                 </Button>

@@ -26,8 +26,10 @@ import ReactPlayer from 'react-player';
 import { getVideoInformation } from '../player/getVideoInformation.js';
 
 import { Duration } from './Duration.jsx';
-import { onAddSongToPlaylist } from '../backend/songs.telefunc.js';
-import { onGetAllGameSongs, onGetGames } from '../backend/games.telefunc.js';
+import {
+  onAddSongToPlaylist,
+  onGetAllGameSongs,
+} from '../backend/songs.telefunc.js';
 import { useDebouncedCallback } from 'use-debounce';
 
 export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {

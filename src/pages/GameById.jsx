@@ -50,6 +50,7 @@ export const GameById = () => {
     onGetGameById({ gameId, search: searchValue }).then(game => setGame(game));
   };
 
+  console.log(game);
   const debouncedSearch = useDebouncedCallback(value => {
     handleSearch(value);
   }, 500);
@@ -209,11 +210,11 @@ export const GameById = () => {
               gameId={gameId}
               sceneId={scene.id}
               playlists={scene.playlists}
-              onCreatePlaylist={() =>
-                onGetGameById({ gameId }).then(game => {
-                  setGame(game);
-                })
-              }
+              onCreatePlaylist={created => {
+                setLocation(
+                  `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
+                );
+              }}
             />
           </Flex>
         ))}

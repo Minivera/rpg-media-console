@@ -20,7 +20,7 @@ export const PlayerProvider = ({ children }) => {
     shouldReconnect: () => true,
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     onGetPlayingState().then(data => {
       setPlaying(state => ({
         ...state,
@@ -44,7 +44,7 @@ export const PlayerProvider = ({ children }) => {
       playing: lastJsonMessage.playing,
     }));
     setLastUpdate(lastJsonMessage);
-  }, [lastJsonMessage]);
+  }, [lastJsonMessage]);*/
 
   return (
     <PlayerContext.Provider

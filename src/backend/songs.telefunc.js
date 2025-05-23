@@ -1,8 +1,18 @@
 import { shield } from 'telefunc';
 
-import { db } from '../db.js';
-
-import { getDbPlaylist } from './db.js';
+import {
+  findGameById,
+  findPlaylistInSceneById,
+  findSongInPlaylistById,
+} from './utils.telefunc.js';
+import { transformSong } from './utils/transformers.js';
+import {
+  addSong,
+  deleteSong,
+  getSongs,
+  updateSong,
+  updateSongsOrder,
+} from './db/index.js';
 
 const t = shield.type;
 
@@ -23,20 +33,9 @@ export const onAddSongToPlaylist = shield(
     },
   ],
   async ({ gameId, sceneId, playlistId, songData }) => {
-    const { _lastId } = db.data;
+    const playlist = findPlaylistInSceneById(gameId, sceneId, playlistId);
 
-    const playlist = getDbPlaylist(gameId, sceneId, playlistId);
-
-    const newSong = {
-      id: _lastId + 1,
-      ...songData,
-    };
-
-    playlist.songs.push(newSong);
-    db.data._lastId++;
-    await db.write();
-
-    return newSong;
+    return transformSong(addSong(songData, playlist.id));
   }
 );
 
@@ -51,19 +50,9 @@ export const onRenameSongInPlaylist = shield(
     },
   ],
   async ({ gameId, sceneId, playlistId, songId, songName }) => {
-    const playlist = getDbPlaylist(gameId, sceneId, playlistId);
+    const song = findPlaylistInSceneById(gameId, sceneId, playlistId, songId);
 
-    playlist.songs = playlist.songs.map(song => {
-      if (song.id === Number.parseInt(songId, 10)) {
-        return {
-          ...song,
-          name: songName,
-        };
-      }
-
-      return song;
-    });
-    await db.write();
+    return transformSong(updateSong({ name: songName }, song.id));
   }
 );
 
@@ -85,10 +74,9 @@ export const onUpdateSongOrder = shield(
     },
   ],
   async ({ gameId, sceneId, playlistId, songs }) => {
-    const playlist = getDbPlaylist(gameId, sceneId, playlistId);
+    findPlaylistInSceneById(gameId, sceneId, playlistId);
 
-    playlist.songs = songs;
-    await db.write();
+    updateSongsOrder(songs);
   }
 );
 
@@ -102,11 +90,17 @@ export const onDeleteSongInPlaylist = shield(
     },
   ],
   async ({ gameId, sceneId, playlistId, songId }) => {
-    const playlist = getDbPlaylist(gameId, sceneId, playlistId);
+    const song = findSongInPlaylistById(gameId, sceneId, playlistId, songId);
 
-    playlist.songs = playlist.songs.filter(
-      song => song.id !== Number.parseInt(songId, 10)
-    );
-    await db.write();
+    deleteSong(song.id);
+  }
+);
+
+export const onGetAllGameSongs = shield(
+  [{ gameId: t.string, search: t.optional(t.string) }],
+  async ({ gameId, search }) => {
+    const game = findGameById(gameId);
+
+    return getSongs({ search, gameId: game.id }).map(transformSong);
   }
 );

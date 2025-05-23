@@ -1,6 +1,6 @@
 import { shield } from 'telefunc';
 
-import { db } from '../db.js';
+import { db } from './db/index.js';
 
 const t = shield.type;
 
