@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Dialog, Flex, TextArea } from '@radix-ui/themes';
-import { onApplyState } from '../backend/state.telefunc.js';
+// import { onApplyState } from '../backend/state.telefunc.js';
 
 export const UploadDataDialog = () => {
   const [opened, setOpened] = useState(false);

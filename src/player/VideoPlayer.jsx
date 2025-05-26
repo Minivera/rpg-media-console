@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -8,6 +8,7 @@ import {
   IconButton,
   Text,
   Slider as RedixSlider,
+  Tooltip,
 } from '@radix-ui/themes';
 import {
   DoubleArrowLeftIcon,
@@ -27,45 +28,53 @@ import { Duration } from '../components/Duration.jsx';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
 import { PlayerContext } from './PlayerContext.jsx';
+import { playUpdateActions } from '../backend/liveplay/constants.js';
 
 export const VideoPlayer = () => {
-  const playerRef = useRef(null);
+  const [playerRef, setPlayerRef] = useState(null);
+  const playerRefSetter = useCallback(node => {
+    if (node !== null) {
+      setPlayerRef(node);
+    }
+  }, []);
+
   const playerContext = useContext(PlayerContext);
+  if (!playerContext) {
+    throw new Error('Wrap the VideoPlayer inside a PlayerProvider component');
+  }
+
   const [played, setPlayed] = useState(
-    playerContext ? playerContext.currentSeek : 0
+    playerContext.state ? playerContext.state.currentSeek : 0
   );
   const [volume, setVolume] = useState(
-    playerContext ? playerContext.volume : 50
+    playerContext.state ? playerContext.state.volume : 50
   );
-  const [lastProcessedUpdate, setLastProcessedUpdate] = useState(null);
 
   const isMd = useIsBreakpoint('md');
 
-  if (!playerContext) {
-    throw new Error('Wrap the app inside a PlayerProvider component');
-  }
+  const playingSong = playerContext.state
+    ? playerContext.state.songs[playerContext.state.currentIndex]
+    : undefined;
 
-  const playingSong = playerContext.songs[playerContext.currentIndex];
   useEffect(() => {
-    if (playerRef.current && playerContext && !lastProcessedUpdate) {
-      setLastProcessedUpdate('initial');
-      playerRef.current.seekTo(playerContext.currentSeek);
-      setPlayed(playerContext.currentSeek * 1000);
-      setVolume(playerContext.volume);
-    }
+    if (playerRef && playerContext) {
+      setPlayed(playerContext.state.currentSeek * 1000);
+      setVolume(playerContext.state.volume);
 
-    if (
-      playerRef.current &&
-      playerContext &&
-      playerContext.lastUpdate &&
-      lastProcessedUpdate !== playerContext.lastUpdate.updateId
-    ) {
-      setLastProcessedUpdate(playerContext.lastUpdate.updateId);
-      playerRef.current.seekTo(playerContext.currentSeek);
-      setPlayed(playerContext.currentSeek * 1000);
-      setVolume(playerContext.volume);
+      playerContext.subscribeToUpdates(update => {
+        if (
+          update.action === playUpdateActions.SEEK ||
+          update.action === playUpdateActions.RESUME ||
+          update.action === playUpdateActions.PLAY
+        ) {
+          playerRef.seekTo(update.state.currentSeek);
+          setPlayed(update.state.currentSeek * 1000);
+        } else if (update.action === playUpdateActions.UPDATE) {
+          setVolume(update.state.volume);
+        }
+      });
     }
-  }, [playerRef, playerContext, playerContext.lastUpdate, lastProcessedUpdate]);
+  }, [playerRef]);
 
   if (!playingSong) {
     return (
@@ -79,6 +88,16 @@ export const VideoPlayer = () => {
         maxWidth="450px"
       >
         <Card>
+          <Box
+            width="5px"
+            height="5px"
+            position="absolute"
+            right="15px"
+            style={{
+              backgroundColor: 'var(--red-10)',
+              borderRadius: '50%',
+            }}
+          />
           <Flex justify="between" gap="2" pr="6" align="center">
             <IconButton variant="ghost" size="2" disabled>
               <DoubleArrowLeftIcon />
@@ -125,19 +144,35 @@ export const VideoPlayer = () => {
       maxWidth="450px"
     >
       <Card>
+        <Tooltip
+          content={
+            playerContext.isListener
+              ? 'You are listening for update'
+              : 'You are leading the session'
+          }
+        >
+          <Box
+            width="5px"
+            height="5px"
+            position="absolute"
+            right="15px"
+            style={{
+              backgroundColor: playerContext.isListener
+                ? 'var(--blue-10)'
+                : 'var(--green-10)',
+              borderRadius: '50%',
+            }}
+          />
+        </Tooltip>
         <Flex justify="between" gap="2" pr="6" align="center">
           <Flex direction="column" gap="4" align="center" justify="center">
             <Flex justify="between" gap="2" align="center">
               <IconButton
                 variant="ghost"
                 size="2"
-                disabled={playerContext.currentIndex <= 0}
+                disabled={playerContext.state.currentIndex <= 0}
                 onClick={() => {
-                  playerContext.setPlaying(state => ({
-                    ...state,
-                    currentIndex: state.currentIndex - 1,
-                    currentSeek: 0,
-                  }));
+                  playerContext.previous();
                 }}
               >
                 <DoubleArrowLeftIcon />
@@ -146,30 +181,25 @@ export const VideoPlayer = () => {
                 radius="full"
                 size="3"
                 onClick={() => {
-                  playerContext.setPlaying(state => ({
-                    ...state,
-                    playing: !state.playing,
-                  }));
-
-                  if (playerRef.current) {
-                    playerRef.current.seekTo(playerContext.currentSeek);
+                  if (playerContext.state.playing) {
+                    playerContext.pause();
+                  } else {
+                    playerContext.resume();
+                    playerRef.seekTo(playerContext.state.currentSeek);
                   }
                 }}
               >
-                {playerContext.playing ? <PauseIcon /> : <ResumeIcon />}
+                {playerContext.state.playing ? <PauseIcon /> : <ResumeIcon />}
               </IconButton>
               <IconButton
                 variant="ghost"
                 size="2"
                 disabled={
-                  playerContext.currentIndex >= playerContext.songs.length - 1
+                  playerContext.state.currentIndex >=
+                  playerContext.state.songs.length - 1
                 }
                 onClick={() => {
-                  playerContext.setPlaying(state => ({
-                    ...state,
-                    currentIndex: state.currentIndex + 1,
-                    currentSeek: 0,
-                  }));
+                  playerContext.next();
                 }}
               >
                 <DoubleArrowRightIcon />
@@ -187,10 +217,7 @@ export const VideoPlayer = () => {
                     setVolume(value[0]);
                   }}
                   onValueCommit={value => {
-                    playerContext.setPlaying(state => ({
-                      ...state,
-                      volume: value[0],
-                    }));
+                    playerContext.updateVolume(value[0]);
                   }}
                   size="1"
                   min={0}
@@ -232,13 +259,10 @@ export const VideoPlayer = () => {
                   value={[played]}
                   onChangeComplete={value => {
                     setPlayed(value);
+                    playerContext.seek(value / 1000);
 
-                    if (playerRef.current) {
-                      playerRef.current.seekTo(value / 1000);
-                      playerContext.setPlaying(previous => ({
-                        ...previous,
-                        currentSeek: value / 1000,
-                      }));
+                    if (playerRef) {
+                      playerRef.seekTo(value / 1000);
                     }
                   }}
                   onChange={value => {
@@ -276,34 +300,26 @@ export const VideoPlayer = () => {
               </Grid>
               <Box display="none">
                 <ReactPlayer
-                  ref={playerRef}
+                  ref={playerRefSetter}
                   url={playingSong.url}
-                  playing={playerContext.playing}
+                  playing={playerContext.state.playing}
                   volume={volume / 100}
                   muted={volume === 0}
+                  onReady={() => {
+                    playerRef.seekTo(playerContext.state.currentSeek);
+                  }}
                   onProgress={state => {
-                    if (playerContext.playing) {
+                    if (playerContext.state.playing) {
                       setPlayed(state.played * 1000);
-                      playerContext.setPlaying(
-                        previous => ({
-                          ...previous,
-                          currentSeek: state.played,
-                        }),
-                        false
-                      );
+                      playerContext.updateSeek(state.played);
                     }
                   }}
                   onEnded={() => {
-                    playerContext.setPlaying(previous => ({
-                      ...previous,
-                      playing:
-                        previous.currentIndex + 1 <= previous.songs.length - 1,
-                      currentIndex: Math.min(
-                        previous.currentIndex + 1,
-                        previous.songs.length - 1
-                      ),
-                      currentSeek: 0,
-                    }));
+                    if (playerContext.isListener) {
+                      return;
+                    }
+
+                    playerContext.next();
                   }}
                 />
               </Box>

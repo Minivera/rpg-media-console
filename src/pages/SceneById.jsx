@@ -32,7 +32,7 @@ import {
   onUpdateSceneInGame,
 } from '../backend/scenes.telefunc.js';
 import { DeleteDialog } from '../components/DeleteDialog.jsx';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounceCallback } from 'usehooks-ts';
 
 export const SceneById = () => {
   const [, setLocation] = useLocation();
@@ -54,7 +54,7 @@ export const SceneById = () => {
     );
   };
 
-  const debouncedSearch = useDebouncedCallback(value => {
+  const debouncedSearch = useDebounceCallback(value => {
     handleSearch(value);
   }, 500);
 
@@ -66,7 +66,7 @@ export const SceneById = () => {
 
   const handleDeleteScene = () => {
     onDeleteSceneInGame({ gameId, sceneId }).then(() => {
-      setLocation(`/games/${gameId}`);
+      setLocation(`~/games/${gameId}`);
     });
   };
 
@@ -77,14 +77,14 @@ export const SceneById = () => {
       <Box>
         <Skeleton loading={isLoading}>
           <Navigation
-            previousPage={`/games/${gameId}`}
+            previousPage={`~/games/${gameId}`}
             breadcrumbs={[
               {
-                path: '/',
+                path: '~/',
                 name: 'Games',
               },
               {
-                path: `/games/${gameId}`,
+                path: `~/games/${gameId}`,
                 name: game?.name,
               },
               {
@@ -175,7 +175,7 @@ export const SceneById = () => {
                 playlists={scene.playlists}
                 onCreatePlaylist={created => {
                   setLocation(
-                    `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
+                    `~/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
                   );
                 }}
                 orientation="vertical"

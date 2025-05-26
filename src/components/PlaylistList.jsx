@@ -94,7 +94,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
               onClick={() => {
                 playSongs(playlist.songs);
                 setLocation(
-                  `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.id}`
+                  `~/games/${gameId}/scenes/${sceneId}/playlists/${playlist.id}`
                 );
               }}
             >
@@ -105,7 +105,7 @@ const PlaylistCard = ({ gameId, sceneId, playlist }) => {
       </Box>
       <Flex direction="column" position="relative" align="start">
         <Link
-          to={`/games/${gameId}/scenes/${sceneId}/playlists/${playlist.id}`}
+          to={`~/games/${gameId}/scenes/${sceneId}/playlists/${playlist.id}`}
         >
           <Text size="2" weight="medium" color="gray" highContrast>
             {playlist.name}

@@ -2,7 +2,7 @@ import express from 'express';
 import * as http from 'node:http';
 import { telefunc, config } from 'telefunc';
 
-import { configureSubscriber } from './src/backend/updateSubscriber.js';
+import { configureSubscriber } from './src/backend/liveplay/updateSubscriber.js';
 import { runMigrations } from './src/backend/db/db.js';
 
 config.shield = { dev: true };

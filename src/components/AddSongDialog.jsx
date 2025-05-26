@@ -30,7 +30,7 @@ import {
   onAddSongToPlaylist,
   onGetAllGameSongs,
 } from '../backend/songs.telefunc.js';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounceCallback } from 'usehooks-ts';
 
 export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
   const [songURL, setSongURL] = useState('');
@@ -55,7 +55,7 @@ export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
     );
   };
 
-  const debouncedSearch = useDebouncedCallback(value => {
+  const debouncedSearch = useDebounceCallback(value => {
     handleSearch(value);
   }, 500);
 

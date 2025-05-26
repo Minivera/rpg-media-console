@@ -58,7 +58,7 @@ import {
 import { PlayerContext, usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounceCallback } from 'usehooks-ts';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
   const [hovered, setHovered] = useState(false);
@@ -68,7 +68,9 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
     throw new Error('Wrap the app inside a PlayerProvider component');
   }
 
-  const playingSong = playerContext.songs[playerContext.currentIndex];
+  const playingSong = playerContext.state
+    ? playerContext.state.songs[playerContext.state.currentIndex]
+    : undefined;
 
   const isMd = useIsBreakpoint('md');
 
@@ -204,7 +206,7 @@ export const PlaylistById = () => {
     );
   };
 
-  const debouncedSearch = useDebouncedCallback(value => {
+  const debouncedSearch = useDebounceCallback(value => {
     handleSearch(value);
   }, 500);
 
@@ -224,7 +226,7 @@ export const PlaylistById = () => {
 
   const handleDeletePlaylist = () => {
     onDeletePlaylistInScene({ gameId, sceneId, playlistId }).then(() => {
-      setLocation(`/games/${gameId}/scenes/${sceneId}`);
+      setLocation(`~/games/${gameId}/scenes/${sceneId}`);
     });
   };
 
@@ -326,18 +328,18 @@ export const PlaylistById = () => {
       <Box>
         <Skeleton loading={isLoading}>
           <Navigation
-            previousPage={`/games/${gameId}/scenes/${sceneId}`}
+            previousPage={`~/games/${gameId}/scenes/${sceneId}`}
             breadcrumbs={[
               {
-                path: '/',
+                path: '~/',
                 name: 'Games',
               },
               {
-                path: `/games/${gameId}`,
+                path: `~/games/${gameId}`,
                 name: game?.name,
               },
               {
-                path: `/games/${gameId}/scenes/${sceneId}`,
+                path: `~/games/${gameId}/scenes/${sceneId}`,
                 name: scene?.name,
               },
               {
@@ -428,7 +430,7 @@ export const PlaylistById = () => {
                 playlists={scene.playlists}
                 onCreatePlaylist={created => {
                   setLocation(
-                    `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
+                    `~/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
                   );
                 }}
                 orientation="vertical"
@@ -588,7 +590,7 @@ export const PlaylistById = () => {
                             variant="ghost"
                             onClick={() => {
                               setLocation(
-                                `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.previous.id}`
+                                `~/games/${gameId}/scenes/${sceneId}/playlists/${playlist.previous.id}`
                               );
                             }}
                           >
@@ -615,7 +617,7 @@ export const PlaylistById = () => {
                             variant="ghost"
                             onClick={() => {
                               setLocation(
-                                `/games/${gameId}/scenes/${sceneId}/playlists/${playlist.next.id}`
+                                `~/games/${gameId}/scenes/${sceneId}/playlists/${playlist.next.id}`
                               );
                             }}
                           >

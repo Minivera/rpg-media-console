@@ -20,7 +20,7 @@ import {
   ViewNoneIcon,
 } from '@radix-ui/react-icons';
 import { useLocation, Link } from 'wouter';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import { onAddGame, onGetGames } from '../backend/games.telefunc';
 
@@ -41,7 +41,7 @@ export const Home = () => {
     onGetGames({ search: searchValue }).then(games => setGames(games));
   };
 
-  const debouncedSearch = useDebouncedCallback(value => {
+  const debouncedSearch = useDebounceCallback(value => {
     handleSearch(value);
   }, 500);
 
@@ -53,7 +53,7 @@ export const Home = () => {
     }
 
     onAddGame({ gameName }).then(created => {
-      setLocation(`/games/${created.id}`);
+      setLocation(`~/games/${created.id}`);
     });
   };
 
@@ -214,7 +214,7 @@ export const Home = () => {
                     flex: 1,
                   }}
                 >
-                  <Link to={`/games/${id}`}>
+                  <Link to={`~/games/${id}`}>
                     <Flex
                       direction="row"
                       justify="between"

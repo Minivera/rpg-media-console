@@ -18,7 +18,7 @@ import {
   ViewNoneIcon,
 } from '@radix-ui/react-icons';
 import { useParams, useLocation, Link } from 'wouter';
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import {
   onDeleteGame,
@@ -50,8 +50,7 @@ export const GameById = () => {
     onGetGameById({ gameId, search: searchValue }).then(game => setGame(game));
   };
 
-  console.log(game);
-  const debouncedSearch = useDebouncedCallback(value => {
+  const debouncedSearch = useDebounceCallback(value => {
     handleSearch(value);
   }, 500);
 
@@ -65,7 +64,7 @@ export const GameById = () => {
 
   const handleDeleteGame = () => {
     onDeleteGame({ gameId }).then(() => {
-      setLocation('/');
+      setLocation('~/');
     });
   };
 
@@ -74,10 +73,10 @@ export const GameById = () => {
       <Box>
         <Skeleton loading={!game}>
           <Navigation
-            previousPage="/"
+            previousPage="~/"
             breadcrumbs={[
               {
-                path: '/',
+                path: '~/',
                 name: 'Games',
               },
               {
@@ -153,7 +152,7 @@ export const GameById = () => {
             <NewSceneDialog
               gameId={gameId}
               onCreated={created => {
-                setLocation(`/games/${gameId}/scenes/${created.id}`);
+                setLocation(`~/games/${gameId}/scenes/${created.id}`);
               }}
             />
           ) : (
@@ -199,7 +198,7 @@ export const GameById = () => {
             <Flex direction="row" gap="3" align="center">
               <Heading as="h4" size="6" color="white">
                 <Link
-                  to={`/games/${gameId}/scenes/${scene.id}`}
+                  to={`~/games/${gameId}/scenes/${scene.id}`}
                   style={{ color: 'inherit' }}
                 >
                   {scene.name}
@@ -212,7 +211,7 @@ export const GameById = () => {
               playlists={scene.playlists}
               onCreatePlaylist={created => {
                 setLocation(
-                  `/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
+                  `~/games/${game.id}/scenes/${scene.id}/playlists/${created.id}`
                 );
               }}
             />

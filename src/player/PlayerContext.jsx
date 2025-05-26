@@ -1,70 +1,218 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import useWebSocket from 'react-use-websocket';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { useParams } from 'wouter';
+import { useLocalStorage } from 'usehooks-ts';
 
 import { onGetPlayingState } from '../backend/state.telefunc.js';
+import {
+  GameState,
+  gameStateFromState,
+} from '../backend/liveplay/gameState.js';
+import { playUpdateActions } from '../backend/liveplay/constants.js';
 
 export const PlayerContext = createContext(undefined);
 
 export const PlayerProvider = ({ children }) => {
+  const { gameId } = useParams();
+  const [actorId, setActorId] = useLocalStorage('video-player-actor-id', null);
+
   const [playing, setPlaying] = useState({
     loading: true,
-    playing: false,
-    currentIndex: 0,
-    currentSeek: 0,
-    volume: 50,
-    songs: [],
+    isListener: true,
+    state: null,
+    subscriber: null,
   });
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const { sendJsonMessage, lastJsonMessage } = useWebSocket('/play-updates', {
-    onOpen: () => console.log('Listening for play state updates'),
-    shouldReconnect: () => true,
-  });
+  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
+    `/play-updates${actorId ? `?actor_id=${actorId}` : ''}`,
+    {
+      onOpen: () => console.log('Listening for play state updates'),
+      shouldReconnect: () => true,
+    }
+  );
 
-  /*useEffect(() => {
-    onGetPlayingState().then(data => {
-      setPlaying(state => ({
-        ...state,
+  useEffect(() => {
+    if (readyState !== ReadyState.OPEN) {
+      return;
+    }
+
+    onGetPlayingState({ gameId }).then(dbState => {
+      const gameState = !dbState
+        ? new GameState()
+        : new GameState(dbState.data);
+
+      setPlaying(prevState => ({
+        ...prevState,
         loading: false,
-        ...data,
+        isListener: gameState.actor !== actorId,
+        state: gameState.state,
       }));
     });
-  }, []);
+  }, [readyState, gameId]);
 
   useEffect(() => {
     if (!lastJsonMessage) {
       return;
     }
 
+    if (lastJsonMessage.action === 'CONNECTED') {
+      setActorId(lastJsonMessage.connectionId);
+      return;
+    }
+
+    const updatedState = new GameState(lastJsonMessage.data);
     setPlaying(state => ({
       ...state,
-      songs: lastJsonMessage.songs,
-      currentIndex: lastJsonMessage.currentIndex,
-      currentSeek: lastJsonMessage.currentSeek,
-      volume: lastJsonMessage.volume,
-      playing: lastJsonMessage.playing,
+      isListener: updatedState.actor !== actorId,
+      state: updatedState.state,
     }));
-    setLastUpdate(lastJsonMessage);
-  }, [lastJsonMessage]);*/
+
+    if (playing.subscriber) {
+      playing.subscriber({
+        action: lastJsonMessage.action,
+        state: updatedState.state,
+      });
+    }
+  }, [lastJsonMessage]);
 
   return (
     <PlayerContext.Provider
       value={{
         ...playing,
-        lastUpdate,
-        setPlaying: (newOrSetter, shouldBroadcast = true) => {
-          setPlaying(previous => {
-            let state = newOrSetter;
-            if (typeof state === 'function') {
-              state = state(previous);
-            }
-
-            sendJsonMessage({
-              update: state,
-              broadcast: shouldBroadcast,
-            });
-
-            return state;
+        subscribeToUpdates: subscriber => {
+          setPlaying(prevState => ({
+            ...prevState,
+            subscriber,
+          }));
+        },
+        updateSeek: seek => {
+          sendJsonMessage({
+            action: playUpdateActions.PLAYING,
+            gameId,
+            update: {
+              seekUpdate: seek,
+            },
           });
+        },
+        playSongs: songs => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.startPlaying(songs);
+
+          sendJsonMessage({
+            action: playUpdateActions.PLAY,
+            gameId,
+            update: { songs },
+          });
+
+          // playing sends the event to all subscribers as we want to start
+          // at roughly the same time.
+        },
+        pause: () => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.pausePlaying();
+
+          sendJsonMessage({
+            action: playUpdateActions.PAUSE,
+            gameId,
+            update: {},
+          });
+
+          setPlaying(prevState => ({
+            ...prevState,
+            // When the user takes an action, they become an actor
+            isListener: false,
+            state: gameState.state,
+          }));
+        },
+        resume: () => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.resumePlaying();
+
+          sendJsonMessage({
+            action: playUpdateActions.RESUME,
+            gameId,
+            update: {},
+          });
+
+          // Resuming sends the event to all subscribers as we want to resume
+          // at roughly the same time.
+        },
+        seek: seekPosition => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.seekTo(seekPosition);
+
+          sendJsonMessage({
+            action: playUpdateActions.SEEK,
+            gameId,
+            update: { seekUpdate: seekPosition },
+          });
+
+          setPlaying(prevState => ({
+            ...prevState,
+            // When the user takes an action, they become an actor
+            isListener: false,
+            state: gameState.state,
+          }));
+        },
+        next: () => {
+          const gameState = gameStateFromState(playing.state);
+          if (gameState.currentIndex + 1 <= gameState.songs.length - 1) {
+            gameState.moveTo(+1);
+            sendJsonMessage({
+              action: playUpdateActions.NEXT,
+              gameId,
+              update: {},
+            });
+          } else {
+            gameState.pausePlaying();
+            sendJsonMessage({
+              action: playUpdateActions.PAUSE,
+              gameId,
+              update: {},
+            });
+          }
+
+          setPlaying(prevState => ({
+            ...prevState,
+            // When the user takes an action, they become an actor
+            isListener: false,
+            state: gameState.state,
+          }));
+        },
+        previous: () => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.moveTo(-1);
+
+          sendJsonMessage({
+            action: playUpdateActions.PREVIOUS,
+            gameId,
+            update: {},
+          });
+
+          setPlaying(prevState => ({
+            ...prevState,
+            // When the user takes an action, they become an actor
+            isListener: false,
+            state: gameState.state,
+          }));
+        },
+        updateVolume: volume => {
+          const gameState = gameStateFromState(playing.state);
+          gameState.setVolume(volume);
+
+          sendJsonMessage({
+            action: playUpdateActions.UPDATE,
+            gameId,
+            update: {
+              volume,
+            },
+          });
+
+          setPlaying(prevState => ({
+            ...prevState,
+            // When the user takes an action, they become an actor
+            isListener: false,
+            state: gameState.state,
+          }));
         },
       }}
     >
@@ -80,12 +228,6 @@ export const usePlaySongs = () => {
   }
 
   return songs => {
-    playerContext.setPlaying(previousState => ({
-      ...previousState,
-      playing: true,
-      currentIndex: 0,
-      currentSeek: 0,
-      songs,
-    }));
+    playerContext.playSongs(songs);
   };
 };
