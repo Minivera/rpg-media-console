@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button, Dialog, Flex, TextArea } from '@radix-ui/themes';
-import { onImportJSONState } from '../backend/state.telefunc.js';
+import {
+  onExportStateAsJSON,
+  onImportJSONState,
+} from '../backend/state.telefunc.js';
 
 export const UploadDataDialog = () => {
   const [opened, setOpened] = useState(false);
@@ -10,6 +13,20 @@ export const UploadDataDialog = () => {
     if (event.key === 'u' && event.ctrlKey) {
       event.preventDefault();
       setOpened(true);
+    }
+
+    // Also allow a secret export to the old JSON format with CTRL+e
+    if (event.key === 'e' && event.ctrlKey) {
+      event.preventDefault();
+      onExportStateAsJSON().then(data => {
+        const a = document.createElement('a');
+        const file = new Blob([data], {
+          type: 'application/json',
+        });
+        a.href = URL.createObjectURL(file);
+        a.download = 'export_db.json';
+        a.click();
+      });
     }
   };
 

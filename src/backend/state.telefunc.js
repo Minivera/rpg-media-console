@@ -4,7 +4,7 @@ import { getLatestGameState } from './db/gamestate.js';
 import { database } from './db/db.js';
 import { runJSONInsertion } from './db/migrations/3_inject_db_json.js';
 import { withinTransaction } from './db/utils.js';
-import { deleteAllGames } from './db/index.js';
+import { deleteAllGames, exportGames } from './db/index.js';
 
 const t = shield.type;
 
@@ -25,3 +25,13 @@ export const onImportJSONState = shield([t.string], async jsonData => {
     runJSONInsertion(database, JSON.parse(jsonData));
   });
 });
+
+export const onExportStateAsJSON = async () => {
+  return JSON.stringify(
+    {
+      games: JSON.parse(exportGames().games),
+    },
+    null,
+    2
+  );
+};
