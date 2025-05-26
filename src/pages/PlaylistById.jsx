@@ -155,6 +155,15 @@ const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
                 <Flex justify="center" align="center">
                   <Duration seconds={song.duration} />
                 </Flex>
+                <IconButton
+                  variant="ghost"
+                  style={{ cursor: 'pointer' }}
+                  asChild
+                >
+                  <Link href={song.url} target="_blank">
+                    <ExternalLinkIcon />
+                  </Link>
+                </IconButton>
                 <DeleteDialog
                   asIcon
                   name={song.name}
