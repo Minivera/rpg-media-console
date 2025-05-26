@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Dialog, Flex, TextArea } from '@radix-ui/themes';
-// import { onApplyState } from '../backend/state.telefunc.js';
+import { onImportJSONState } from '../backend/state.telefunc.js';
 
 export const UploadDataDialog = () => {
   const [opened, setOpened] = useState(false);
@@ -15,7 +15,7 @@ export const UploadDataDialog = () => {
 
   const handleSaveData = event => {
     event.preventDefault();
-    onApplyState(jsonData).then(() => {
+    onImportJSONState(jsonData).then(() => {
       window.location.reload();
     });
   };

@@ -80,3 +80,7 @@ export const deleteGame = gameId => {
     )
     .run(gameId);
 };
+
+export const deleteAllGames = () => {
+  return database.prepare(`DELETE FROM games;`).run();
+};
