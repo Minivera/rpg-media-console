@@ -31,6 +31,7 @@ import {
   onGetAllGameSongs,
 } from '../backend/songs.telefunc.js';
 import { useDebounceCallback } from 'usehooks-ts';
+import { onGetYoutubePlaylistIDs } from '../backend/youtube.telefunc.js';
 
 export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
   const [songURL, setSongURL] = useState('');
@@ -284,6 +285,20 @@ export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
           </Box>
         </Tabs.Root>
         <Flex gap="3" mt="4" justify="end">
+          <Button
+            variant="soft"
+            color="gray"
+            onClick={() =>
+              onGetYoutubePlaylistIDs({
+                playlistURL:
+                  'https://www.youtube.com/watch?v=xHP2GgxYddY&list=PLSkW9yhFguFRP0FZbD3W1_aY1gzYS9KBl',
+              }).then(content => {
+                console.log(content);
+              })
+            }
+          >
+            Test
+          </Button>
           <Dialog.Close>
             <Button variant="soft" color="gray">
               Cancel
