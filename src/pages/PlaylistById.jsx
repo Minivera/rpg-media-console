@@ -24,6 +24,7 @@ import {
   ArrowRightIcon,
   Cross1Icon,
   DoubleArrowDownIcon,
+  DownloadIcon,
   ExternalLinkIcon,
   MagnifyingGlassIcon,
   PlayIcon,
@@ -59,6 +60,7 @@ import { PlayerContext, usePlaySongs } from '../player/PlayerContext.jsx';
 import { getNewPlaylistURL, getYoutubeId } from '../player/youtubeIds.js';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 import { useDebounceCallback } from 'usehooks-ts';
+import { ImportPlaylistDialog } from '../components/ImportPlaylistDialog.jsx';
 
 const SongCard = ({ song, index, onRenameSong, onDeleteSong, onPlaySong }) => {
   const [hovered, setHovered] = useState(false);
@@ -386,8 +388,8 @@ export const PlaylistById = () => {
           )}
         </Flex>
         <Text as="h2" size="4" color="gray">
-          The playlist's songs will be displayed on the right, click play to get
-          a song playing, or add a new song to get started.
+          The playlist's songs are displayed on the right, click play to get a
+          song playing, or add a new song to get started.
         </Text>
         <Separator mt="3" size="4" />
         <Grid
@@ -512,26 +514,48 @@ export const PlaylistById = () => {
                     </Skeleton>
                   </Flex>
                   {!isLoading ? (
-                    <AddSongDialog
-                      gameId={gameId}
-                      sceneId={sceneId}
-                      playlistId={playlistId}
-                      onAdded={() => {
-                        onGetSceneInGameById({ gameId, sceneId }).then(scene =>
-                          setScene(scene)
-                        );
-                        onGetPlaylistInSceneById({
-                          gameId,
-                          sceneId,
-                          playlistId,
-                        }).then(playlist => setPlaylist(playlist));
-                      }}
-                    />
+                    <Flex gap="2">
+                      <ImportPlaylistDialog
+                        gameId={gameId}
+                        sceneId={sceneId}
+                        playlistId={playlistId}
+                        onImport={() => {
+                          onGetSceneInGameById({ gameId, sceneId }).then(
+                            scene => setScene(scene)
+                          );
+                          onGetPlaylistInSceneById({
+                            gameId,
+                            sceneId,
+                            playlistId,
+                          }).then(playlist => setPlaylist(playlist));
+                        }}
+                      />
+                      <AddSongDialog
+                        gameId={gameId}
+                        sceneId={sceneId}
+                        playlistId={playlistId}
+                        onAdded={() => {
+                          onGetSceneInGameById({ gameId, sceneId }).then(
+                            scene => setScene(scene)
+                          );
+                          onGetPlaylistInSceneById({
+                            gameId,
+                            sceneId,
+                            playlistId,
+                          }).then(playlist => setPlaylist(playlist));
+                        }}
+                      />
+                    </Flex>
                   ) : (
                     <Skeleton>
-                      <Button>
-                        <PlusIcon /> Add song
-                      </Button>
+                      <Flex gap="2">
+                        <Button>
+                          <DownloadIcon /> Import Playlist
+                        </Button>
+                        <Button>
+                          <PlusIcon /> Add song
+                        </Button>
+                      </Flex>
                     </Skeleton>
                   )}
                 </Flex>

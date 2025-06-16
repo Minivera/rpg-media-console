@@ -22,16 +22,15 @@ import {
   ViewNoneIcon,
 } from '@radix-ui/react-icons';
 import ReactPlayer from 'react-player';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import { getVideoInformation } from '../player/getVideoInformation.js';
-
-import { Duration } from './Duration.jsx';
 import {
   onAddSongToPlaylist,
   onGetAllGameSongs,
 } from '../backend/songs.telefunc.js';
-import { useDebounceCallback } from 'usehooks-ts';
-import { onGetYoutubePlaylistIDs } from '../backend/youtube.telefunc.js';
+
+import { Duration } from './Duration.jsx';
 
 export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
   const [songURL, setSongURL] = useState('');
@@ -187,8 +186,8 @@ export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
             <Tabs.Content value="existing">
               <Flex direction="column" gap="3">
                 <Text size="2" color="gray">
-                  Enter the song's URL here to fetch its information, then
-                  validate this is the right song to import.
+                  Search a song by its original name or the custom name from one
+                  of your playlists, then select the song you want to add.
                 </Text>
                 <Box>
                   <TextField.Root
@@ -285,20 +284,6 @@ export const AddSongDialog = ({ gameId, sceneId, playlistId, onAdded }) => {
           </Box>
         </Tabs.Root>
         <Flex gap="3" mt="4" justify="end">
-          <Button
-            variant="soft"
-            color="gray"
-            onClick={() =>
-              onGetYoutubePlaylistIDs({
-                playlistURL:
-                  'https://www.youtube.com/watch?v=xHP2GgxYddY&list=PLSkW9yhFguFRP0FZbD3W1_aY1gzYS9KBl',
-              }).then(content => {
-                console.log(content);
-              })
-            }
-          >
-            Test
-          </Button>
           <Dialog.Close>
             <Button variant="soft" color="gray">
               Cancel

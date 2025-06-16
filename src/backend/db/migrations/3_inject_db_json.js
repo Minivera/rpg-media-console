@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
 
+const oldDBPath = process.env.SERVER_OLD_DB_PATH;
+
 export const runJSONInsertion = (database, dbJson) => {
   const insertGame = database.prepare(`INSERT INTO games (name) VALUES (?);`);
   const insertScene = database.prepare(

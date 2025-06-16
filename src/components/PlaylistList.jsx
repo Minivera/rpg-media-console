@@ -9,13 +9,15 @@ import {
   AspectRatio,
   IconButton,
   Skeleton,
+  Button,
 } from '@radix-ui/themes';
 import { Link, useLocation } from 'wouter';
-import { PlayIcon } from '@radix-ui/react-icons';
+import { DownloadIcon, PlayIcon, PlusIcon } from '@radix-ui/react-icons';
 
 import { NewPlaylistDialog } from './NewPlaylistDialog.jsx';
 import { usePlaySongs } from '../player/PlayerContext.jsx';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
+import { ImportPlaylistDialog } from './ImportPlaylistDialog.jsx';
 
 const PlaylistCard = ({ gameId, sceneId, playlist }) => {
   const isMd = useIsBreakpoint('md');
@@ -162,7 +164,55 @@ export const PlaylistList = ({
               gameId={gameId}
               sceneId={sceneId}
               onCreated={onCreatePlaylist}
-              asCard
+              button={
+                <Button
+                  variant="surface"
+                  style={{
+                    cursor: 'pointer',
+                    height: '50%',
+                    width: '100%',
+                    position: isMd ? 'unset' : 'absolute',
+                    inset: isMd ? 'unset' : 0,
+                    borderRadius: 'var(--radius-4) var(--radius-4) 0 0',
+                  }}
+                >
+                  <Flex
+                    justify="center"
+                    align="center"
+                    height="100%"
+                    width="100%"
+                  >
+                    <PlusIcon /> New Playlist
+                  </Flex>
+                </Button>
+              }
+            />
+            <ImportPlaylistDialog
+              gameId={gameId}
+              sceneId={sceneId}
+              onImport={onCreatePlaylist}
+              button={
+                <Button
+                  variant="surface"
+                  style={{
+                    cursor: 'pointer',
+                    height: '50%',
+                    width: '100%',
+                    position: isMd ? 'unset' : 'absolute',
+                    inset: isMd ? 'unset' : 0,
+                    borderRadius: '0 0 var(--radius-4) var(--radius-4)',
+                  }}
+                >
+                  <Flex
+                    justify="center"
+                    align="center"
+                    height="100%"
+                    width="100%"
+                  >
+                    <DownloadIcon /> Import Playlist
+                  </Flex>
+                </Button>
+              }
             />
           </Box>
         </Box>

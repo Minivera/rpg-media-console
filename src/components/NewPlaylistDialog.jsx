@@ -1,17 +1,10 @@
 import { useState } from 'react';
-import { Button, Dialog, Flex, Text, TextField, Card } from '@radix-ui/themes';
+import { Button, Dialog, Flex, Text, TextField } from '@radix-ui/themes';
 import { PlusIcon } from '@radix-ui/react-icons';
 
 import { onAddPlaylistToScene } from '../backend/playlists.telefunc.js';
-import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
 
-export const NewPlaylistDialog = ({
-  gameId,
-  sceneId,
-  onCreated,
-  asCard = false,
-}) => {
-  const isMd = useIsBreakpoint('md');
+export const NewPlaylistDialog = ({ gameId, sceneId, onCreated, button }) => {
   const [playlistName, setPlaylistName] = useState('');
   const [error, setError] = useState(null);
 
@@ -33,24 +26,8 @@ export const NewPlaylistDialog = ({
         setError('');
       }}
     >
-      {asCard ? (
-        <Dialog.Trigger>
-          <Card asChild>
-            <Button
-              style={{
-                cursor: 'pointer',
-                height: '100%',
-                width: '100%',
-                position: isMd ? 'unset' : 'absolute',
-                inset: isMd ? 'unset' : 0,
-              }}
-            >
-              <Flex justify="center" align="center" height="100%" width="100%">
-                <PlusIcon /> New Playlist
-              </Flex>
-            </Button>
-          </Card>
-        </Dialog.Trigger>
+      {button ? (
+        button
       ) : (
         <Dialog.Trigger>
           <Button style={{ cursor: 'pointer' }}>

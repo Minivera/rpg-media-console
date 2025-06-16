@@ -3,6 +3,10 @@ export const getYoutubeId = url => {
   return url[2] !== undefined ? url[2].split(/[^0-9a-z_\-]/i)[0] : url[0];
 };
 
+export const getYoutubeVideoURL = id => {
+  return `https://www.youtube.com/watch?v=${id}`;
+};
+
 export const getNewPlaylistURL = urls => {
   return `https://youtube.com/watch_videos?video_ids=${urls.join(',')}`;
 };

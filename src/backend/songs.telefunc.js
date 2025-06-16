@@ -7,12 +7,15 @@ import {
 } from './utils.telefunc.js';
 import { transformSong } from './utils/transformers.js';
 import {
+  addPlaylist,
   addSong,
   deleteSong,
   getSongs,
   updateSong,
   updateSongsOrder,
 } from './db/index.js';
+import { withinTransaction } from './db/utils.js';
+import { database } from './db/db.js';
 
 const t = shield.type;
 
@@ -36,6 +39,30 @@ export const onAddSongToPlaylist = shield(
     const playlist = findPlaylistInSceneById(gameId, sceneId, playlistId);
 
     return transformSong(addSong(songData, playlist.id));
+  }
+);
+export const onAddSongsToPlaylist = shield(
+  [
+    {
+      gameId: t.string,
+      sceneId: t.string,
+      playlistId: t.string,
+      songs: t.array({
+        originalName: t.string,
+        name: t.string,
+        image: t.string,
+        url: t.string,
+        author: t.string,
+        duration: t.number,
+      }),
+    },
+  ],
+  async ({ gameId, sceneId, playlistId, songs }) => {
+    const playlist = findPlaylistInSceneById(gameId, sceneId, playlistId);
+
+    return withinTransaction(database, () =>
+      songs.map(song => transformSong(addSong(song, playlist.id)))
+    );
   }
 );
 

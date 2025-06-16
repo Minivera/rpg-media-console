@@ -1,9 +1,6 @@
-import { readFileSync } from 'node:fs';
 import { createDatabase } from './1_create_database.js';
 import { insertFirstMigration } from './2_insert_first_migration.js';
 import { injectDbJSON } from './3_inject_db_json.js';
-
-const oldDBPath = process.env.SERVER_OLD_DB_PATH;
 
 export const getCurrentMigration = database => {
   try {

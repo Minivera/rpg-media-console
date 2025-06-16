@@ -2,7 +2,9 @@ import { Abort, shield } from 'telefunc';
 
 import {
   addPlaylist,
+  addSong,
   deletePlaylist,
+  getPlaylistById,
   getPlaylistWithBetween,
   getSongs,
   updatePlaylist,
@@ -12,6 +14,8 @@ import {
   findPlaylistInSceneById,
   findSceneInGameById,
 } from './utils.telefunc.js';
+import { database } from './db/db.js';
+import { withinTransaction } from './db/utils.js';
 
 const t = shield.type;
 
@@ -21,12 +25,34 @@ export const onAddPlaylistToScene = shield(
       gameId: t.string,
       sceneId: t.or(t.string, t.number),
       playlistName: t.string,
+      songs: t.optional(
+        t.array({
+          originalName: t.string,
+          name: t.string,
+          image: t.string,
+          url: t.string,
+          author: t.string,
+          duration: t.number,
+        })
+      ),
     },
   ],
-  async ({ gameId, sceneId, playlistName }) => {
+  async ({ gameId, sceneId, playlistName, songs }) => {
     const scene = findSceneInGameById(gameId, sceneId);
 
-    return transformPlaylist(addPlaylist(playlistName, scene.id));
+    const addedId = withinTransaction(database, () => {
+      const addedPlaylist = addPlaylist(playlistName, scene.id);
+
+      if (songs && songs.length) {
+        songs.forEach(song => {
+          addSong(song, addedPlaylist.id);
+        });
+      }
+
+      return addedPlaylist.id;
+    });
+
+    return transformPlaylist(getPlaylistById(addedId));
   }
 );
 
