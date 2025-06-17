@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -26,9 +26,10 @@ import ReactPlayer from 'react-player';
 
 import { Duration } from '../components/Duration.jsx';
 import { useIsBreakpoint } from '../hooks/useBreakpoints.jsx';
+import { playUpdateActions } from '../backend/liveplay/constants.js';
+import { usePlayerChrome } from '../hooks/usePlayerChrome.jsx';
 
 import { PlayerContext } from './PlayerContext.jsx';
-import { playUpdateActions } from '../backend/liveplay/constants.js';
 
 export const VideoPlayer = () => {
   const [playerRef, setPlayerRef] = useState(null);
@@ -49,6 +50,7 @@ export const VideoPlayer = () => {
   const [volume, setVolume] = useState(
     playerContext.state ? playerContext.state.volume : 50
   );
+  const startMuted = usePlayerChrome();
 
   const isMd = useIsBreakpoint('md');
 
@@ -304,7 +306,7 @@ export const VideoPlayer = () => {
                   url={playingSong.url}
                   playing={playerContext.state.playing}
                   volume={volume / 100}
-                  muted={volume === 0}
+                  muted={startMuted || volume === 0}
                   onReady={() => {
                     playerRef.seekTo(playerContext.state.currentSeek);
                   }}

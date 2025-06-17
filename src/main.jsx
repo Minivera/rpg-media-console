@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Container, Flex, Theme } from '@radix-ui/themes';
+import { Theme } from '@radix-ui/themes';
 
 import '@radix-ui/themes/styles.css';
 
@@ -13,17 +13,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       accentColor="orange"
       grayColor="sage"
       radius="small"
-      asChild
     >
-      <Container
-        minHeight="100vh"
-        id="container"
-        px={{ md: '0', initial: '2' }}
-      >
-        <Flex minHeight="100vh" direction="column">
-          <App />
-        </Flex>
-      </Container>
+      <App />
     </Theme>
   </React.StrictMode>
 );
